@@ -243,7 +243,7 @@ class IMApp:
         engine = IBus.EngineDesc.new("uniemoji",
                                      engine_name,
                                      "Unicode emoji and symbols by name",
-                                     "en",
+                                     "",
                                      "GPL",
                                      "Lalo Martins <lalo.martins@gmail.com>",
                                      "",

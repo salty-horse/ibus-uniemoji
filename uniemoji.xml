@@ -2,7 +2,7 @@
 <component>
 	<name>org.freedesktop.IBus.UniEmoji</name>
 	<description>Unicode emoji and symbols by name</description>
-	<exec>/usr/share/ibus-uniemoji/uniemoji --ibus</exec>
+	<exec>/usr/share/ibus-uniemoji/uniemoji.py --ibus</exec>
 	<version>0.1.0</version>
 	<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
 	<license>GPL</license>
@@ -12,7 +12,7 @@
 	<engines>
 		<engine>
 			<name>uniemoji</name>
-			<language>en</language>
+			<language></language>
 			<license>GPL</license>
 			<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
 			<icon>/usr/share/ibus-uniemoji/uniemoji.svg</icon>
