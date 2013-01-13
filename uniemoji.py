@@ -130,6 +130,9 @@ class UniEmoji(IBus.Engine):
         if (keyval in xrange(IBus.a, IBus.z + 1) or
             keyval in xrange(IBus.A, IBus.Z + 1) or
             keyval == IBus.space):
+            if keyval == IBus.space and len(self.preedit_string) == 0:
+                self.commit_string(' ')
+                return False
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
                 self.preedit_string += unichr(keyval)
                 self.invalidate()
