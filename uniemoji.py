@@ -19,6 +19,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+from __future__ import print_function
+
 from gi.repository import IBus
 from gi.repository import GLib
 from gi.repository import GObject
@@ -29,6 +31,11 @@ import sys
 import getopt
 import locale
 
+debug_on = True
+def debug(*a, **kw):
+    if debug_on:
+        print(*a, **kw)
+
 # gee thank you IBus :-)
 num_keys = []
 for n in range(10):
@@ -38,7 +45,6 @@ del n
 __base_dir__ = os.path.dirname(__file__)
 
 ranges = [(0x1f300, 0x1f6ff+1), (0x2600, 0x2bff+1)]
-
 
 ###########################################################################
 # the engine
@@ -70,10 +76,10 @@ class UniEmoji(IBus.Engine):
                     continue
                 self.table[name.lower()] = unichr(code)
 
-        print "Create UniEmoji engine OK"
+        debug("Create UniEmoji engine OK")
 
     def do_process_key_event(self, keyval, keycode, state):
-        print "process_key_event(%04x, %04x, %04x)" % (keyval, keycode, state)
+        debug("process_key_event(%04x, %04x, %04x)" % (keyval, keycode, state))
         # ignore key release events
         is_press = ((state & IBus.ModifierType.RELEASE_MASK) == 0)
         if not is_press:
@@ -203,24 +209,28 @@ class UniEmoji(IBus.Engine):
 
 
     def do_focus_in(self):
-        print "focus_in"
+        debug("focus_in")
         self.register_properties(self.prop_list)
 
     def do_focus_out(self):
-        print "focus_out"
+        debug("focus_out")
 
     def do_reset(self):
-        print "reset"
+        debug("reset")
 
     def do_property_activate(self, prop_name):
-        print "PropertyActivate(%s)" % prop_name
+        debug("PropertyActivate(%s)" % prop_name)
 
 
 ###########################################################################
 # the app (main interface to ibus)
 class IMApp:
     def __init__(self, exec_by_ibus):
-        engine_name = "uniemoji" if exec_by_ibus else "uniemoji (debug)"
+        engine_name = "uniemoji"
+        if not exec_by_ibus:
+            engine_name += " (debug)"
+            global debug_on
+            debug_on = True
         self.component = \
                 IBus.Component.new("org.freedesktop.IBus.UniEmoji",
                                    "Unicode emoji and symbols by name",
@@ -264,9 +274,9 @@ def launch_engine(exec_by_ibus):
     IMApp(exec_by_ibus).run()
 
 def print_help(out, v = 0):
-    print >> out, "-i, --ibus             executed by IBus."
-    print >> out, "-h, --help             show this message."
-    print >> out, "-d, --daemonize        daemonize ibus"
+    print("-i, --ibus             executed by IBus.", file=out)
+    print("-h, --help             show this message.", file=out)
+    print("-d, --daemonize        daemonize ibus", file=out)
     sys.exit(v)
 
 def main():
@@ -294,7 +304,7 @@ def main():
         elif o in ("-i", "--ibus"):
             exec_by_ibus = True
         else:
-            print >> sys.stderr, "Unknown argument: %s" % o
+            print("Unknown argument: %s" % o, file=sys.stderr)
             print_help(sys.stderr, 1)
 
     if daemonize:
