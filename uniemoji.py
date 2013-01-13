@@ -47,11 +47,11 @@ class UniEmoji(IBus.Engine):
 
     def __init__(self):
         super(UniEmoji, self).__init__()
-        self.__is_invalidate = False
-        self.__preedit_string = u""
-        self.__lookup_table = IBus.LookupTable.new(10, 0, True, True)
-        self.__prop_list = IBus.PropList()
-        self.__table = {}
+        self.is_invalidate = False
+        self.preedit_string = u""
+        self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
+        self.prop_list = IBus.PropList()
+        self.table = {}
         with open(os.path.join(__base_dir__, 'UnicodeData.txt')) as unicodedata:
             _ranges = ranges[::-1]
             range = _ranges.pop()
@@ -68,7 +68,7 @@ class UniEmoji(IBus.Engine):
                         break
                 if category != 'So':
                     continue
-                self.__table[name.lower()] = unichr(code)
+                self.table[name.lower()] = unichr(code)
 
         print "Create UniEmoji engine OK"
 
@@ -79,33 +79,33 @@ class UniEmoji(IBus.Engine):
         if not is_press:
             return False
 
-        if self.__preedit_string:
+        if self.preedit_string:
             if keyval == IBus.Return:
-                if self.__lookup_table.get_number_of_candidates() > 0:
-                    self.__commit_candidate()
+                if self.lookup_table.get_number_of_candidates() > 0:
+                    self.commit_candidate()
                 else:
-                    self.__commit_string(self.__preedit_string)
+                    self.commit_string(self.preedit_string)
                 return True
             elif keyval == IBus.Escape:
-                self.__preedit_string = u""
-                self.__update()
+                self.preedit_string = u""
+                self.update_candidates()
                 return True
             elif keyval == IBus.BackSpace:
-                self.__preedit_string = self.__preedit_string[:-1]
-                self.__invalidate()
+                self.preedit_string = self.preedit_string[:-1]
+                self.invalidate()
                 return True
             elif keyval in num_keys[1:]:
                 index = num_keys.index(keyval) - 1
-                page_size = self.__lookup_table.get_page_size()
+                page_size = self.lookup_table.get_page_size()
                 if index > page_size:
                     return False
-                page, pos_in_page = divmod(self.__lookup_table.get_cursor_pos(),
+                page, pos_in_page = divmod(self.lookup_table.get_cursor_pos(),
                                            page_size)
                 new_pos = page * page_size + index
-                if new_pos > self.__lookup_table.get_number_of_candidates():
+                if new_pos > self.lookup_table.get_number_of_candidates():
                     return False
-                self.__lookup_table.set_cursor_pos(new_pos)
-                self.__commit_candidate()
+                self.lookup_table.set_cursor_pos(new_pos)
+                self.commit_candidate()
                 return True
             elif keyval == IBus.Page_Up or keyval == IBus.KP_Page_Up:
                 self.page_up()
@@ -125,85 +125,86 @@ class UniEmoji(IBus.Engine):
             keyval in xrange(IBus.A, IBus.Z + 1) or
             keyval == IBus.space):
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
-                self.__preedit_string += unichr(keyval)
-                self.__invalidate()
+                self.preedit_string += unichr(keyval)
+                self.invalidate()
                 return True
         else:
-            if keyval < 128 and self.__preedit_string:
-                self.__commit_string(self.__preedit_string)
+            if keyval < 128 and self.preedit_string:
+                self.commit_string(self.preedit_string)
 
         return False
 
-    def __invalidate(self):
-        if self.__is_invalidate:
+    def invalidate(self):
+        if self.is_invalidate:
             return
-        self.__is_invalidate = True
-        GLib.idle_add(self.__update)
+        self.is_invalidate = True
+        GLib.idle_add(self.update_candidates)
 
 
     def page_up(self):
-        if self.__lookup_table.page_up():
-            self.__update_lookup_table()
+        if self.lookup_table.page_up():
+            self._update_lookup_table()
             return True
         return False
 
     def page_down(self):
-        if self.__lookup_table.page_down():
-            self.__update_lookup_table()
+        if self.lookup_table.page_down():
+            self._update_lookup_table()
             return True
         return False
 
     def cursor_up(self):
-        if self.__lookup_table.cursor_up():
-            self.__update_lookup_table()
+        if self.lookup_table.cursor_up():
+            self._update_lookup_table()
             return True
         return False
 
     def cursor_down(self):
-        if self.__lookup_table.cursor_down():
-            self.__update_lookup_table()
+        if self.lookup_table.cursor_down():
+            self._update_lookup_table()
             return True
         return False
 
-    def __commit_string(self, text):
+    def commit_string(self, text):
         self.commit_text(IBus.Text.new_from_string(text))
-        self.__preedit_string = u""
-        self.__update()
+        self.preedit_string = u""
+        self.update_candidates()
 
-    def __commit_candidate(self):
-        self.__commit_string(self.__table[
-            self.__lookup_table.get_candidate(
-                self.__lookup_table.get_cursor_pos()).text])
+    def commit_candidate(self):
+        self.commit_string(self.candidates[self.lookup_table.get_cursor_pos()])
 
-    def __update(self):
-        preedit_len = len(self.__preedit_string)
+    def update_candidates(self):
+        preedit_len = len(self.preedit_string)
         attrs = IBus.AttrList()
-        self.__lookup_table.clear()
+        self.lookup_table.clear()
+        self.candidates = []
         if preedit_len > 0:
-            check = self.__preedit_string.lower()
-            for name in self.__table:
+            check = self.preedit_string.lower()
+            for name in self.table:
                 if check in name:
-                    self.__lookup_table.append_candidate(IBus.Text.new_from_string(name))
-        text = IBus.Text.new_from_string(self.__preedit_string)
+                    candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
+                    self.candidates.append(self.table[name])
+                    self.lookup_table.append_candidate(candidate)
+        text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         self.update_auxiliary_text(text, preedit_len > 0)
 
         attrs.append(IBus.Attribute.new(IBus.AttrType.UNDERLINE,
                 IBus.AttrUnderline.SINGLE, 0, preedit_len))
-        text = IBus.Text.new_from_string(self.__preedit_string)
+        text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         self.update_preedit_text(text, preedit_len, preedit_len > 0)
-        self.__update_lookup_table()
-        self.__is_invalidate = False
+        self._update_lookup_table()
+        self.is_invalidate = False
 
-    def __update_lookup_table(self):
-        visible = self.__lookup_table.get_number_of_candidates() > 0
-        self.update_lookup_table(self.__lookup_table, visible)
+    def _update_lookup_table(self):
+        visible = self.lookup_table.get_number_of_candidates() > 0
+        self.update_lookup_table(self.lookup_table, visible)
 
 
     def do_focus_in(self):
         print "focus_in"
-        self.register_properties(self.__prop_list)
+        self.register_properties(self.prop_list)
 
     def do_focus_out(self):
         print "focus_out"
@@ -220,7 +221,7 @@ class UniEmoji(IBus.Engine):
 class IMApp:
     def __init__(self, exec_by_ibus):
         engine_name = "uniemoji" if exec_by_ibus else "uniemoji (debug)"
-        self.__component = \
+        self.component = \
                 IBus.Component.new("org.freedesktop.IBus.UniEmoji",
                                    "Unicode emoji and symbols by name",
                                    "0.1.0",
@@ -237,25 +238,25 @@ class IMApp:
                                      "Lalo Martins <lalo.martins@gmail.com>",
                                      "",
                                      "us")
-        self.__component.add_engine(engine)
-        self.__mainloop = GLib.MainLoop()
-        self.__bus = IBus.Bus()
-        self.__bus.connect("disconnected", self.__bus_disconnected_cb)
-        self.__factory = IBus.Factory.new(self.__bus.get_connection())
-        self.__factory.add_engine("uniemoji",
+        self.component.add_engine(engine)
+        self.mainloop = GLib.MainLoop()
+        self.bus = IBus.Bus()
+        self.bus.connect("disconnected", self.bus_disconnected_cb)
+        self.factory = IBus.Factory.new(self.bus.get_connection())
+        self.factory.add_engine("uniemoji",
                 GObject.type_from_name("UniEmoji"))
         if exec_by_ibus:
-            self.__bus.request_name("org.freedesktop.IBus.UniEmoji", 0)
+            self.bus.request_name("org.freedesktop.IBus.UniEmoji", 0)
         else:
-            self.__bus.register_component(self.__component)
-            self.__bus.set_global_engine_async(
+            self.bus.register_component(self.component)
+            self.bus.set_global_engine_async(
                     "uniemoji", -1, None, None, None)
 
     def run(self):
-        self.__mainloop.run()
+        self.mainloop.run()
 
-    def __bus_disconnected_cb(self, bus):
-        self.__mainloop.quit()
+    def bus_disconnected_cb(self, bus):
+        self.mainloop.quit()
 
 
 def launch_engine(exec_by_ibus):
