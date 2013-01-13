@@ -6,7 +6,7 @@
 	<version>0.1.0</version>
 	<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
 	<license>GPL</license>
-	<homepage>https://github.com/lalomartins/uniemoji</homepage>
+	<homepage>https://github.com/lalomartins/ibus-uniemoji</homepage>
 	<textdomain>uniemoji</textdomain>
 
 	<engines>

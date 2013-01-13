@@ -237,7 +237,7 @@ class IMApp:
                                    "0.1.0",
                                    "GPL",
                                    "Lalo Martins <lalo.martins@gmail.com>",
-                                   "https://github.com/lalomartins/uniemoji",
+                                   "https://github.com/lalomartins/ibus-uniemoji",
                                    "/usr/bin/exec",
                                    "uniemoji")
         engine = IBus.EngineDesc.new("uniemoji",
