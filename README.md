@@ -14,3 +14,5 @@ Then activate ibus using whatever key combination you have configured, and chang
 Type some text you believe to be part of the name of an emoji or symbol. Select the one you want the usual ways (type more, use the cursor, numbers, mouse, touch...), and press Enter to insert.
 
 Then you probably want to turn it off so you can type normal text.
+
+This package is dedicated to @MsAmberPRiley who AFAIK isn't even a GNU/Linux user and therefore might never hear of it, but who caused me to detour a Sunday to writing it ;-)
