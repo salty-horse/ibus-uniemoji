@@ -1,0 +1,26 @@
+<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<component>
+	<name>org.freedesktop.IBus.UniEmoji</name>
+	<description>Unicode emoji and symbols by name</description>
+	<exec>/usr/share/ibus-uniemoji/uniemoji --ibus</exec>
+	<version>0.1.0</version>
+	<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
+	<license>GPL</license>
+	<homepage>https://github.com/lalomartins/uniemoji</homepage>
+	<textdomain>uniemoji</textdomain>
+
+	<engines>
+		<engine>
+			<name>uniemoji</name>
+			<language>en</language>
+			<license>GPL</license>
+			<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
+			<icon>/usr/share/ibus-uniemoji/uniemoji.svg</icon>
+			<layout>us</layout>
+			<longname>UniEmoji</longname>
+			<description>Unicode emoji and symbols by name</description>
+			<rank>0</rank>
+		</engine>
+	</engines>
+
+</component>
