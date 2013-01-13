@@ -35,6 +35,10 @@ for n in range(10):
     num_keys.append(getattr(IBus, str(n)))
 del n
 
+__base_dir__ = os.path.dirname(__file__)
+
+ranges = [(0x1f300, 0x1f6ff+1), (0x2600, 0x2bff+1)]
+
 
 ###########################################################################
 # the engine
@@ -47,8 +51,25 @@ class UniEmoji(IBus.Engine):
         self.__preedit_string = u""
         self.__lookup_table = IBus.LookupTable.new(10, 0, True, True)
         self.__prop_list = IBus.PropList()
-        self.__table = {'foo': '23', 'bar': '42', 'foo bar': '5'}
-        #self.__prop_list.append(IBus.Property(key="test", icon="ibus-local"))
+        self.__table = {}
+        with open(os.path.join(__base_dir__, 'UnicodeData.txt')) as unicodedata:
+            _ranges = ranges[::-1]
+            range = _ranges.pop()
+            for line in unicodedata.readlines():
+                if not line.strip(): continue
+                code, name, category, _ = line.split(';', 3)
+                code = int(code, 16)
+                if code < range[0]:
+                    continue
+                if code > range[1]:
+                    try:
+                        range = _ranges.pop()
+                    except IndexError:
+                        break
+                if category != 'So':
+                    continue
+                self.__table[name.lower()] = unichr(code)
+
         print "Create UniEmoji engine OK"
 
     def do_process_key_event(self, keyval, keycode, state):
@@ -158,7 +179,6 @@ class UniEmoji(IBus.Engine):
         preedit_len = len(self.__preedit_string)
         attrs = IBus.AttrList()
         self.__lookup_table.clear()
-        #import sys, ipdb; sys.stdout = sys.__stdout__; ipdb.set_trace()
         if preedit_len > 0:
             check = self.__preedit_string.lower()
             for name in self.__table:
