@@ -59,7 +59,7 @@ class UniEmoji(IBus.Engine):
         self.prop_list = IBus.PropList()
         self.table = {}
         with open(os.path.join(__base_dir__, 'UnicodeData.txt')) as unicodedata:
-            _ranges = ranges[::-1]
+            _ranges = ranges[:]
             range = _ranges.pop()
             for line in unicodedata.readlines():
                 if not line.strip(): continue
