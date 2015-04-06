@@ -1,7 +1,7 @@
 #! /usr/bin/env python
 # UniEmoji: ibus engine for unicode emoji and symbols by name
 #
-# Copyright (c) 2013 Lalo Martins <lalo.martins@gmail.com>
+# Copyright (c) 2013, 2015 Lalo Martins <lalo.martins@gmail.com>
 #
 # based on https://github.com/ibus/ibus-tmpl/
 #
@@ -44,7 +44,7 @@ del n
 
 __base_dir__ = os.path.dirname(__file__)
 
-ranges = [(0x1f300, 0x1f6ff+1), (0x2600, 0x2bff+1)]
+ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
 
 ###########################################################################
 # the engine
@@ -72,9 +72,10 @@ class UniEmoji(IBus.Engine):
                         range = _ranges.pop()
                     except IndexError:
                         break
-                if category != 'So':
+                if category not in ('Sm', 'So', 'Po'):
                     continue
                 self.table[name.lower()] = unichr(code)
+        self.table['shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
 
         debug("Create UniEmoji engine OK")
 
