@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 # UniEmoji: ibus engine for unicode emoji and symbols by name
 #
 # Copyright (c) 2013, 2015 Lalo Martins <lalo.martins@gmail.com>
@@ -30,6 +31,14 @@ import os
 import sys
 import getopt
 import locale
+import codecs
+
+from difflib import SequenceMatcher
+
+try:
+    import Levenshtein
+except ImportError:
+    Levenshtein = None
 
 debug_on = True
 def debug(*a, **kw):
@@ -46,6 +55,9 @@ __base_dir__ = os.path.dirname(__file__)
 
 ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
 
+# make this a config option
+MATCH_LIMIT = 100
+
 ###########################################################################
 # the engine
 class UniEmoji(IBus.Engine):
@@ -58,7 +70,7 @@ class UniEmoji(IBus.Engine):
         self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
         self.prop_list = IBus.PropList()
         self.table = {}
-        with open(os.path.join(__base_dir__, 'UnicodeData.txt')) as unicodedata:
+        with codecs.open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
             _ranges = ranges[:]
             range = _ranges.pop()
             for line in unicodedata.readlines():
@@ -75,7 +87,7 @@ class UniEmoji(IBus.Engine):
                 if category not in ('Sm', 'So', 'Po'):
                     continue
                 self.table[name.lower()] = unichr(code)
-        self.table['shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
+        self.table[u'shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
 
         debug("Create UniEmoji engine OK")
 
@@ -132,6 +144,9 @@ class UniEmoji(IBus.Engine):
             keyval in xrange(IBus.A, IBus.Z + 1) or
             keyval == IBus.space):
             if keyval == IBus.space and len(self.preedit_string) == 0:
+                # Insert space if that's all you typed (so you can more easily
+                # type a bunch of emoji separated by spaces)
+                # there's a bug here, it's inserting two spaces
                 self.commit_string(' ')
                 return False
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
@@ -183,18 +198,57 @@ class UniEmoji(IBus.Engine):
     def commit_candidate(self):
         self.commit_string(self.candidates[self.lookup_table.get_cursor_pos()])
 
+    def filter(self, query, candidates = None):
+        if candidates is None: candidates = self.table
+        matched = []
+        for candidate in candidates:
+            if len(query) > len(candidate): continue
+
+            if query == candidate:
+                matched.append([2, 0, candidate])
+            else:
+                level = 0
+                score = 0
+                ops = []
+                if Levenshtein is None:
+                    opcodes = SequenceMatcher(None, query, candidate,
+                        autojunk=False).get_opcodes()
+                else:
+                    opcodes = Levenshtein.opcodes(query, candidate)
+                for (tag, i1, i2, j1, j2) in opcodes:
+                    if tag in ('replace', 'delete'):
+                        score = 0
+                        break
+                    if tag == 'insert':
+                        score -= 1
+                    if tag == 'equal':
+                        score += i2 - i1
+                        if i2 - i1 == len(query):
+                            level = 1
+                        # favor word boundaries
+                        if j1 == 0:
+                            score += 2
+                        elif candidate[j1 - 1] == ' ':
+                            score += 1
+                        if j2 == len(candidate):
+                            score += 2
+                        elif [j2] == ' ':
+                            score += 1
+                if score >= 0:
+                    matched.append([0, score, candidate])
+        matched.sort(reverse=True)
+        return matched[:MATCH_LIMIT]
+
     def update_candidates(self):
         preedit_len = len(self.preedit_string)
         attrs = IBus.AttrList()
         self.lookup_table.clear()
         self.candidates = []
         if preedit_len > 0:
-            check = self.preedit_string.lower()
-            for name in self.table:
-                if check in name:
-                    candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
-                    self.candidates.append(self.table[name])
-                    self.lookup_table.append_candidate(candidate)
+            for level, score, name in self.filter(self.preedit_string.lower()):
+                candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
+                self.candidates.append(self.table[name])
+                self.lookup_table.append_candidate(candidate)
         text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         self.update_auxiliary_text(text, preedit_len > 0)
@@ -238,7 +292,7 @@ class IMApp:
         self.component = \
                 IBus.Component.new("org.freedesktop.IBus.UniEmoji",
                                    "Unicode emoji and symbols by name",
-                                   "0.1.0",
+                                   "0.3.0",
                                    "GPL",
                                    "Lalo Martins <lalo.martins@gmail.com>",
                                    "https://github.com/lalomartins/ibus-uniemoji",
