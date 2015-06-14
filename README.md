@@ -3,6 +3,8 @@ UniEmoji for ibus
 
 This simple input method for [ibus](http://code.google.com/p/ibus/) allows you to enter unicode emoji and other symbols by name.
 
+Since this is such a small project, there's no mailing list or website or anything. If you want automatic notification of new releases, you can use the Github releases feature; it even has a feed (https://github.com/lalomartins/ibus-uniemoji/releases.atom).
+
 Dependencies
 -------------
 
