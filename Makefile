@@ -6,6 +6,7 @@ install:
 	cp uniemoji.py uniemoji.svg UnicodeData.txt /usr/share/ibus-uniemoji
 	chmod a+x /usr/share/ibus-uniemoji/uniemoji.py
 	cp uniemoji.xml /usr/share/ibus/component
+
 uninstall:
 	rm -rf /usr/share/ibus-uniemoji
 	rm -f /usr/share/ibus/component/uniemoji.xml

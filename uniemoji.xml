@@ -1,26 +1,32 @@
-<?xml version=\"1.0\" encoding=\"utf-8\"?>
+<?xml version="1.0" encoding="utf-8"?>
+<!-- filename: uniemoji.xml -->
 <component>
-	<name>org.freedesktop.IBus.UniEmoji</name>
-	<description>Unicode emoji and symbols by name</description>
-	<exec>/usr/share/ibus-uniemoji/uniemoji.py --ibus</exec>
-	<version>0.1.0</version>
-	<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
-	<license>GPL</license>
-	<homepage>https://github.com/lalomartins/ibus-uniemoji</homepage>
-	<textdomain>uniemoji</textdomain>
-
-	<engines>
-		<engine>
-			<name>uniemoji</name>
-			<language></language>
-			<license>GPL</license>
-			<author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
-			<icon>/usr/share/ibus-uniemoji/uniemoji.svg</icon>
-			<layout>us</layout>
-			<longname>UniEmoji</longname>
-			<description>Unicode emoji and symbols by name</description>
-			<rank>0</rank>
-		</engine>
-	</engines>
-
+    <name>org.freedesktop.IBus.UniEmoji</name>
+    <description>Unicode emoji and symbols by name</description>
+    <version>0.3.0</version>
+    <license>GPL</license>
+    <author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
+    <homepage>https://github.com/lalomartins/ibus-uniemoji</homepage>
+    <exec>/usr/bin/python2 /usr/share/ibus-uniemoji/uniemoji.py --ibus</exec>
+    <textdomain>uniemoji</textdomain>
+    <engines>
+        <engine>
+            <name>uniemoji</name>
+            <longname>uniemoji</longname>
+            <description>Unicode emoji and symbols by name</description>
+            <language></language>
+            <license>GPL</license>
+            <author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
+            <icon>/usr/share/ibus-uniemoji/uniemoji.svg</icon>
+            <layout>default</layout>
+            <layout_variant>default</layout_variant>
+            <layout_option>default</layout_option>
+            <hotkeys></hotkeys>
+            <symbol></symbol>
+            <setup></setup>
+            <version></version>
+            <textdomain></textdomain>
+            <rank>0</rank>
+        </engine>
+    </engines>
 </component>

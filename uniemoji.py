@@ -93,6 +93,7 @@ class UniEmoji(IBus.Engine):
 
     def do_process_key_event(self, keyval, keycode, state):
         debug("process_key_event(%04x, %04x, %04x)" % (keyval, keycode, state))
+
         # ignore key release events
         is_press = ((state & IBus.ModifierType.RELEASE_MASK) == 0)
         if not is_press:
@@ -284,41 +285,25 @@ class UniEmoji(IBus.Engine):
 # the app (main interface to ibus)
 class IMApp:
     def __init__(self, exec_by_ibus):
-        engine_name = "uniemoji"
         if not exec_by_ibus:
-            engine_name += " (debug)"
             global debug_on
             debug_on = True
-        self.component = \
-                IBus.Component.new("org.freedesktop.IBus.UniEmoji",
-                                   "Unicode emoji and symbols by name",
-                                   "0.3.0",
-                                   "GPL",
-                                   "Lalo Martins <lalo.martins@gmail.com>",
-                                   "https://github.com/lalomartins/ibus-uniemoji",
-                                   "/usr/bin/exec",
-                                   "uniemoji")
-        engine = IBus.EngineDesc.new("uniemoji",
-                                     engine_name,
-                                     "Unicode emoji and symbols by name",
-                                     "",
-                                     "GPL",
-                                     "Lalo Martins <lalo.martins@gmail.com>",
-                                     "",
-                                     "us")
-        self.component.add_engine(engine)
         self.mainloop = GLib.MainLoop()
         self.bus = IBus.Bus()
         self.bus.connect("disconnected", self.bus_disconnected_cb)
         self.factory = IBus.Factory.new(self.bus.get_connection())
-        self.factory.add_engine("uniemoji",
-                GObject.type_from_name("UniEmoji"))
+        self.factory.add_engine("uniemoji", GObject.type_from_name("UniEmoji"))
         if exec_by_ibus:
             self.bus.request_name("org.freedesktop.IBus.UniEmoji", 0)
         else:
-            self.bus.register_component(self.component)
-            self.bus.set_global_engine_async(
-                    "uniemoji", -1, None, None, None)
+            xml_path = os.path.join(__base_dir__, 'uniemoji.xml')
+            if os.path.exists(xml_path):
+                component = IBus.Component.new_from_file(xml_path)
+            else:
+                xml_path = os.path.join(os.path.dirname(__base_dir__),
+                                        'ibus', 'component', 'uniemoji.xml')
+                component = IBus.Component.new_from_file(xml_path)
+            self.bus.register_component(component)
 
     def run(self):
         self.mainloop.run()
