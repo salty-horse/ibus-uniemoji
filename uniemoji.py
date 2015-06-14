@@ -31,8 +31,14 @@ import os
 import sys
 import getopt
 import locale
+import codecs
 
 from difflib import SequenceMatcher
+
+try:
+    import Levenshtein
+except ImportError:
+    Levenshtein = None
 
 debug_on = True
 def debug(*a, **kw):
@@ -64,7 +70,7 @@ class UniEmoji(IBus.Engine):
         self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
         self.prop_list = IBus.PropList()
         self.table = {}
-        with open(os.path.join(__base_dir__, 'UnicodeData.txt')) as unicodedata:
+        with codecs.open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
             _ranges = ranges[:]
             range = _ranges.pop()
             for line in unicodedata.readlines():
@@ -81,7 +87,7 @@ class UniEmoji(IBus.Engine):
                 if category not in ('Sm', 'So', 'Po'):
                     continue
                 self.table[name.lower()] = unichr(code)
-        self.table['shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
+        self.table[u'shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
 
         debug("Create UniEmoji engine OK")
 
@@ -198,42 +204,38 @@ class UniEmoji(IBus.Engine):
         for candidate in candidates:
             if len(query) > len(candidate): continue
 
-            if query in candidate:
-                score = len(query)
-                matched.append([score, candidate])
+            if query == candidate:
+                matched.append([2, 0, candidate])
             else:
+                level = 0
                 score = 0
                 ops = []
-                matcher = SequenceMatcher(None, query, candidate, autojunk=False)
-                for (tag, i1, i2, j1, j2) in matcher.get_opcodes():
+                if Levenshtein is None:
+                    opcodes = SequenceMatcher(None, query, candidate,
+                        autojunk=False).get_opcodes()
+                else:
+                    opcodes = Levenshtein.opcodes(query, candidate)
+                for (tag, i1, i2, j1, j2) in opcodes:
                     if tag in ('replace', 'delete'):
                         score = 0
                         break
                     if tag == 'insert':
                         score -= 1
-                        ops.append('-1 for insert of {} chars'.format(j2 - j1))
                     if tag == 'equal':
                         score += i2 - i1
-                        ops.append('+{} for matching sequence "{}"'.format(
-                            i2 - i1, query[i1:i2]
-                        ))
+                        if i2 - i1 == len(query):
+                            level = 1
                         # favor word boundaries
                         if j1 == 0:
                             score += 2
-                            ops.append('+2 for match at candidate start')
                         elif candidate[j1 - 1] == ' ':
                             score += 1
-                            ops.append('+1 for match at word start')
                         if j2 == len(candidate):
                             score += 2
-                            ops.append('+2 for match at candidate end')
                         elif [j2] == ' ':
                             score += 1
-                            ops.append('+1 for match at word end')
                 if score >= 0:
-                    matched.append([score, candidate])
-                    if score >= 2:
-                        debug(score, candidate, ops)
+                    matched.append([0, score, candidate])
         matched.sort(reverse=True)
         return matched[:MATCH_LIMIT]
 
@@ -243,7 +245,7 @@ class UniEmoji(IBus.Engine):
         self.lookup_table.clear()
         self.candidates = []
         if preedit_len > 0:
-            for score, name in self.filter(self.preedit_string.lower()):
+            for level, score, name in self.filter(self.preedit_string.lower()):
                 candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
                 self.candidates.append(self.table[name])
                 self.lookup_table.append_candidate(candidate)

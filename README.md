@@ -16,6 +16,10 @@ Less obviously:
 
 - the ibus gobject introspection information (on debian/ubuntu: gir1.2-ibus-1.0)
 
+Optional:
+
+- python-Levenshtein (`pip install python-Levenshtein`, also available as debian/ubuntu package python-levenshtein) makes fuzzy search faster
+
 Installing
 -----------
 
