@@ -32,10 +32,7 @@ import sys
 import getopt
 import locale
 
-try:
-    from fuzzywuzzy import fuzz
-except ImportError:
-    fuzz = None
+from difflib import SequenceMatcher
 
 debug_on = True
 def debug(*a, **kw):
@@ -197,28 +194,48 @@ class UniEmoji(IBus.Engine):
 
     def filter(self, query, candidates = None):
         if candidates is None: candidates = self.table
-        debug(query, candidates)
-        if fuzz is None:
-            matched = 0
-            for candidate in candidates:
-                if name in candidate:
-                    yield candidate
-                    matched += 1
-                    if matched == MATCH_LIMIT:
+        matched = []
+        for candidate in candidates:
+            if len(query) > len(candidate): continue
+
+            if query in candidate:
+                score = len(query)
+                matched.append([score, candidate])
+            else:
+                score = 0
+                ops = []
+                matcher = SequenceMatcher(None, query, candidate, autojunk=False)
+                for (tag, i1, i2, j1, j2) in matcher.get_opcodes():
+                    if tag in ('replace', 'delete'):
+                        score = 0
                         break
-        else:
-            matched = []
-            for candidate in candidates:
-                score = fuzz.ratio(query, candidate)
-                # I'm not too happy with fuzzywuzzy's matching… if I type “star”,
-                # I get “strawberry” ranked higher than any of the actual stars
-                if query in candidate:
-                    score += 25
-                if score > 20:
+                    if tag == 'insert':
+                        score -= 1
+                        ops.append('-1 for insert of {} chars'.format(j2 - j1))
+                    if tag == 'equal':
+                        score += i2 - i1
+                        ops.append('+{} for matching sequence "{}"'.format(
+                            i2 - i1, query[i1:i2]
+                        ))
+                        # favor word boundaries
+                        if j1 == 0:
+                            score += 2
+                            ops.append('+2 for match at candidate start')
+                        elif candidate[j1 - 1] == ' ':
+                            score += 1
+                            ops.append('+1 for match at word start')
+                        if j2 == len(candidate):
+                            score += 2
+                            ops.append('+2 for match at candidate end')
+                        elif [j2] == ' ':
+                            score += 1
+                            ops.append('+1 for match at word end')
+                if score >= 0:
                     matched.append([score, candidate])
-            matched.sort(reverse=True)
-            for score, candidate in matched[:MATCH_LIMIT]:
-                yield candidate
+                    if score >= 2:
+                        debug(score, candidate, ops)
+        matched.sort(reverse=True)
+        return matched[:MATCH_LIMIT]
 
     def update_candidates(self):
         preedit_len = len(self.preedit_string)
@@ -226,7 +243,7 @@ class UniEmoji(IBus.Engine):
         self.lookup_table.clear()
         self.candidates = []
         if preedit_len > 0:
-            for name in self.filter(self.preedit_string.lower()):
+            for score, name in self.filter(self.preedit_string.lower()):
                 candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
                 self.candidates.append(self.table[name])
                 self.lookup_table.append_candidate(candidate)
@@ -273,7 +290,7 @@ class IMApp:
         self.component = \
                 IBus.Component.new("org.freedesktop.IBus.UniEmoji",
                                    "Unicode emoji and symbols by name",
-                                   "0.1.0",
+                                   "0.3.0",
                                    "GPL",
                                    "Lalo Martins <lalo.martins@gmail.com>",
                                    "https://github.com/lalomartins/ibus-uniemoji",

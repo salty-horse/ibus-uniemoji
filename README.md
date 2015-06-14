@@ -16,11 +16,6 @@ Less obviously:
 
 - the ibus gobject introspection information (on debian/ubuntu: gir1.2-ibus-1.0)
 
-Optional:
-
-- fuzzywuzzy (`pip install fuzzywuzzy`) for fuzzy search
-- python-Levenshtein (`pip install python-Levenshtein`, also available as debian/ubuntu package python-levenshtein) makes fuzzywuzzy 4-10× faster
-
 Installing
 -----------
 
