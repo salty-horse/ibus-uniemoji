@@ -55,7 +55,6 @@ __base_dir__ = os.path.dirname(__file__)
 
 ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
 
-# make this a config option
 MATCH_LIMIT = 100
 
 ###########################################################################

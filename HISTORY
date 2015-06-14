@@ -1,6 +1,11 @@
-# 0.3.0 — WIP
+# 0.3.0 — 2015-06-15
 
 - Fuzzy search
+- Use system default keyboard layout/variant
+  (Actually that's a lie! That's what IBus calls the option, but in reality
+  what it does is keep the previous layout/variant when you switch. So if
+  you're coming from a qwerty IM to uniemoji, you'll get qwerty; if you're
+  coming from a dvorak IM, you get dvorak, and so on.)
 
 # 0.2.0 — 2015-04-06
 
