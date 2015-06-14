@@ -1,0 +1,17 @@
+# 0.3.0 — WIP
+
+- (Optional) fuzzy search using fuzzywuzzy
+
+# 0.2.0 — 2015-04-06
+
+- Update UnicodeData to 7.0
+- Include some more symbols
+- Add uninstall to Makefile (thanks Stephen Chandler Paul @Lyude)
+
+# 0.1.1 — 2013-08-27
+
+- Bugfix (first unicode code point range wasn't considered)
+
+# 0.1.0 — 2013-01-14
+
+- Intiial release

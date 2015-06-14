@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 # UniEmoji: ibus engine for unicode emoji and symbols by name
 #
 # Copyright (c) 2013, 2015 Lalo Martins <lalo.martins@gmail.com>
@@ -31,6 +32,11 @@ import sys
 import getopt
 import locale
 
+try:
+    from fuzzywuzzy import fuzz
+except ImportError:
+    fuzz = None
+
 debug_on = True
 def debug(*a, **kw):
     if debug_on:
@@ -45,6 +51,9 @@ del n
 __base_dir__ = os.path.dirname(__file__)
 
 ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
+
+# make this a config option
+MATCH_LIMIT = 100
 
 ###########################################################################
 # the engine
@@ -132,6 +141,9 @@ class UniEmoji(IBus.Engine):
             keyval in xrange(IBus.A, IBus.Z + 1) or
             keyval == IBus.space):
             if keyval == IBus.space and len(self.preedit_string) == 0:
+                # Insert space if that's all you typed (so you can more easily
+                # type a bunch of emoji separated by spaces)
+                # there's a bug here, it's inserting two spaces
                 self.commit_string(' ')
                 return False
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
@@ -183,18 +195,41 @@ class UniEmoji(IBus.Engine):
     def commit_candidate(self):
         self.commit_string(self.candidates[self.lookup_table.get_cursor_pos()])
 
+    def filter(self, query, candidates = None):
+        if candidates is None: candidates = self.table
+        debug(query, candidates)
+        if fuzz is None:
+            matched = 0
+            for candidate in candidates:
+                if name in candidate:
+                    yield candidate
+                    matched += 1
+                    if matched == MATCH_LIMIT:
+                        break
+        else:
+            matched = []
+            for candidate in candidates:
+                score = fuzz.ratio(query, candidate)
+                # I'm not too happy with fuzzywuzzy's matching… if I type “star”,
+                # I get “strawberry” ranked higher than any of the actual stars
+                if query in candidate:
+                    score += 25
+                if score > 20:
+                    matched.append([score, candidate])
+            matched.sort(reverse=True)
+            for score, candidate in matched[:MATCH_LIMIT]:
+                yield candidate
+
     def update_candidates(self):
         preedit_len = len(self.preedit_string)
         attrs = IBus.AttrList()
         self.lookup_table.clear()
         self.candidates = []
         if preedit_len > 0:
-            check = self.preedit_string.lower()
-            for name in self.table:
-                if check in name:
-                    candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
-                    self.candidates.append(self.table[name])
-                    self.lookup_table.append_candidate(candidate)
+            for name in self.filter(self.preedit_string.lower()):
+                candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
+                self.candidates.append(self.table[name])
+                self.lookup_table.append_candidate(candidate)
         text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         self.update_auxiliary_text(text, preedit_len > 0)
