@@ -234,7 +234,7 @@ class UniEmoji(IBus.Engine):
                             score += 2
                         elif [j2] == ' ':
                             score += 1
-                if score >= 0:
+                if score > 0:
                     matched.append([0, score, candidate])
         matched.sort(reverse=True)
         return matched[:MATCH_LIMIT]
