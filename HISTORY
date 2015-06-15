@@ -1,4 +1,4 @@
-# 0.3.0 — 2015-06-15
+# 0.3.0: 🔍😕 — 2015-06-15
 
 - Fuzzy search
 - Use system default keyboard layout/variant
@@ -7,16 +7,16 @@
   you're coming from a qwerty IM to uniemoji, you'll get qwerty; if you're
   coming from a dvorak IM, you get dvorak, and so on.)
 
-# 0.2.0 — 2015-04-06
+# 0.2.0: 🕴 ⤆ ¯\_(ツ)_/¯ — 2015-04-06
 
 - Update UnicodeData to 7.0
 - Include some more symbols
 - Add uninstall to Makefile (thanks Stephen Chandler Paul @Lyude)
 
-# 0.1.1 — 2013-08-27
+# 0.1.1: 😳🐛 — 2013-08-27
 
 - Bugfix (first unicode code point range wasn't considered)
 
-# 0.1.0 — 2013-01-14
+# 0.1.0: 🐱🚀 — 2013-01-14
 
 - Intiial release
