@@ -87,6 +87,7 @@ class UniEmoji(IBus.Engine):
                     continue
                 self.table[name.lower()] = unichr(code)
         self.table[u'shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
+        self.table[u'kyubei'] = u'\uff0f\u4eba\u25d5 \u203f\u203f \u25d5\u4eba\uff3c'
 
         debug("Create UniEmoji engine OK")
 
