@@ -29,6 +29,7 @@ from gi.repository import Pango
 
 import os
 import sys
+import json
 import getopt
 import locale
 import codecs
@@ -56,6 +57,7 @@ __base_dir__ = os.path.dirname(__file__)
 ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
 
 MATCH_LIMIT = 100
+USER_SETTINGS_DIR = os.path.expanduser('~/.config/uniemoji')
 
 ###########################################################################
 # the engine
@@ -88,6 +90,18 @@ class UniEmoji(IBus.Engine):
                 self.table[name.lower()] = unichr(code)
         self.table[u'shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
         self.table[u'kyubei'] = u'\uff0f\u4eba\u25d5 \u203f\u203f \u25d5\u4eba\uff3c'
+
+        # Load custom file
+        custom_filename = os.path.join(USER_SETTINGS_DIR, 'custom.json')
+        if os.path.isfile(custom_filename):
+            custom_table = None
+            with codecs.open(custom_filename, encoding='utf-8') as f:
+                try:
+                    custom_table = json.loads(f.read())
+                except:
+                    # TODO: Log warning?
+                    pass
+            self.table.update(custom_table)
 
         debug("Create UniEmoji engine OK")
 
