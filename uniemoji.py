@@ -41,6 +41,13 @@ try:
 except ImportError:
     Levenshtein = None
 
+try:
+    import xdg
+except ImportError:
+    xdg = None
+else:
+    import xdg.BaseDirectory
+
 debug_on = True
 def debug(*a, **kw):
     if debug_on:
@@ -57,7 +64,12 @@ __base_dir__ = os.path.dirname(__file__)
 ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
 
 MATCH_LIMIT = 100
-USER_SETTINGS_DIR = os.path.expanduser('~/.config/uniemoji')
+
+if xdg:
+    SETTINGS_DIRS = list(xdg.BaseDirectory.load_config_paths('uniemoji'))
+else:
+    SETTINGS_DIRS = [d for d in [os.path.expanduser('~/.config/uniemoji'), '/etc/xdg/uniemoji']
+                     if os.path.isdir(d)]
 
 ###########################################################################
 # the engine
@@ -91,21 +103,23 @@ class UniEmoji(IBus.Engine):
         self.table[u'shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
         self.table[u'kyubei'] = u'\uff0f\u4eba\u25d5 \u203f\u203f \u25d5\u4eba\uff3c'
 
-        # Load custom file
-        custom_filename = os.path.join(USER_SETTINGS_DIR, 'custom.json')
-        if os.path.isfile(custom_filename):
-            custom_table = None
-            try:
-                with codecs.open(custom_filename, encoding='utf-8') as f:
-                    custom_table = json.loads(f.read())
-            except:
-                error = sys.exc_info()[1]
-                debug(error)
-                self.table = {
-                    u'Failed to load custom file {}: {}'.format(custom_filename, error): u'ERROR'
-                }
-            else:
-                self.table.update(custom_table)
+        # Load custom file(s)
+        for d in reversed(SETTINGS_DIRS):
+            custom_filename = os.path.join(d, 'custom.json')
+            if os.path.isfile(custom_filename):
+                custom_table = None
+                try:
+                    with codecs.open(custom_filename, encoding='utf-8') as f:
+                        custom_table = json.loads(f.read())
+                except:
+                    error = sys.exc_info()[1]
+                    debug(error)
+                    self.table = {
+                        u'Failed to load custom file {}: {}'.format(custom_filename, error): u'ERROR'
+                    }
+                    break
+                else:
+                    self.table.update(custom_table)
 
         debug("Create UniEmoji engine OK")
 
