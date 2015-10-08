@@ -100,12 +100,11 @@ class UniEmoji(IBus.Engine):
                 if category not in ('Sm', 'So', 'Po'):
                     continue
                 self.table[name.lower()] = unichr(code)
-        self.table[u'shrug'] = u'\xaf\\_(\u30c4)_/\xaf'
-        self.table[u'kyubei'] = u'\uff0f\u4eba\u25d5 \u203f\u203f \u25d5\u4eba\uff3c'
 
         # Load custom file(s)
         for d in reversed(SETTINGS_DIRS):
             custom_filename = os.path.join(d, 'custom.json')
+            debug('Loading custom emoji from {}'.format(custom_filename))
             if os.path.isfile(custom_filename):
                 custom_table = None
                 try:
@@ -119,6 +118,7 @@ class UniEmoji(IBus.Engine):
                     }
                     break
                 else:
+                    debug(custom_table)
                     self.table.update(custom_table)
 
         debug("Create UniEmoji engine OK")
