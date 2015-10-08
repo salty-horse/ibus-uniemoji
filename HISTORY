@@ -1,5 +1,6 @@
 # Next release: WIP
 
+- Update UnicodeData to 8.0
 - Load custom substitutions from `/etc/xdg/uniemoji/custom.json` and
   `~/.config/uniemoji/custom.json` (or rather, any dir in the XDG config
   path if you have pyxdg installed, which modern distros do by default)
