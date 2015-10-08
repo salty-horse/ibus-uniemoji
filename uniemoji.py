@@ -95,13 +95,17 @@ class UniEmoji(IBus.Engine):
         custom_filename = os.path.join(USER_SETTINGS_DIR, 'custom.json')
         if os.path.isfile(custom_filename):
             custom_table = None
-            with codecs.open(custom_filename, encoding='utf-8') as f:
-                try:
+            try:
+                with codecs.open(custom_filename, encoding='utf-8') as f:
                     custom_table = json.loads(f.read())
-                except:
-                    # TODO: Log warning?
-                    pass
-            self.table.update(custom_table)
+            except:
+                error = sys.exc_info()[1]
+                debug(error)
+                self.table = {
+                    u'Failed to load custom file {}: {}'.format(custom_filename, error): u'ERROR'
+                }
+            else:
+                self.table.update(custom_table)
 
         debug("Create UniEmoji engine OK")
 
@@ -214,6 +218,10 @@ class UniEmoji(IBus.Engine):
         self.commit_string(self.candidates[self.lookup_table.get_cursor_pos()])
 
     def filter(self, query, candidates = None):
+        if len(self.table) <= 10:
+            # this only happens if something went wrong; it's our cheap way of displaying errors
+            return [[0, 0, message] for message in self.table]
+
         if candidates is None: candidates = self.table
         matched = []
         for candidate in candidates:
