@@ -25,7 +25,6 @@ from __future__ import print_function
 from gi.repository import IBus
 from gi.repository import GLib
 from gi.repository import GObject
-from gi.repository import Pango
 
 import os
 import sys
@@ -244,9 +243,7 @@ class UniEmoji(IBus.Engine):
             if query == candidate:
                 matched.append([2, 0, candidate])
             else:
-                level = 0
                 score = 0
-                ops = []
                 if Levenshtein is None:
                     opcodes = SequenceMatcher(None, query, candidate,
                         autojunk=False).get_opcodes()
@@ -260,8 +257,6 @@ class UniEmoji(IBus.Engine):
                         score -= 1
                     if tag == 'equal':
                         score += i2 - i1
-                        if i2 - i1 == len(query):
-                            level = 1
                         # favor word boundaries
                         if j1 == 0:
                             score += 2
@@ -372,7 +367,7 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], shortopt, longopt)
-    except getopt.GetoptError, err:
+    except getopt.GetoptError:
         print_help(sys.stderr, 1)
 
     for o, a in opts:
