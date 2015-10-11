@@ -25,7 +25,6 @@ from __future__ import print_function
 from gi.repository import IBus
 from gi.repository import GLib
 from gi.repository import GObject
-from gi.repository import Pango
 
 import os
 import sys
@@ -242,38 +241,48 @@ class UniEmoji(IBus.Engine):
             if len(query) > len(candidate): continue
 
             if query == candidate:
-                matched.append([2, 0, candidate])
+                # Exact match
+                matched.append((2, 0, candidate))
             else:
-                level = 0
-                score = 0
-                ops = []
-                if Levenshtein is None:
-                    opcodes = SequenceMatcher(None, query, candidate,
-                        autojunk=False).get_opcodes()
+                # Substring match
+                query_words = query.split()
+                word_ixs = [candidate.find(w) for w in query_words]
+                if all(ix >= 0 for ix in word_ixs):
+                    # For substrings, the closer to the origin, the better
+                    score = -(float(sum(word_ixs)) / len(word_ixs))
+                    matched.append((1, score, candidate))
                 else:
-                    opcodes = Levenshtein.opcodes(query, candidate)
-                for (tag, i1, i2, j1, j2) in opcodes:
-                    if tag in ('replace', 'delete'):
-                        score = 0
-                        break
-                    if tag == 'insert':
-                        score -= 1
-                    if tag == 'equal':
-                        score += i2 - i1
-                        if i2 - i1 == len(query):
-                            level = 1
-                        # favor word boundaries
-                        if j1 == 0:
-                            score += 2
-                        elif candidate[j1 - 1] == ' ':
-                            score += 1
-                        if j2 == len(candidate):
-                            score += 2
-                        elif [j2] == ' ':
-                            score += 1
-                if score > 0:
-                    matched.append([0, score, candidate])
-        matched.sort(reverse=True)
+                    # Levenshtein distance
+                    score = 0
+                    if Levenshtein is None:
+                        opcodes = SequenceMatcher(None, query, candidate,
+                            autojunk=False).get_opcodes()
+                    else:
+                        opcodes = Levenshtein.opcodes(query, candidate)
+                    for (tag, i1, i2, j1, j2) in opcodes:
+                        if tag in ('replace', 'delete'):
+                            score = 0
+                            break
+                        if tag == 'insert':
+                            score -= 1
+                        if tag == 'equal':
+                            score += i2 - i1
+                            # favor word boundaries
+                            if j1 == 0:
+                                score += 2
+                            elif candidate[j1 - 1] == ' ':
+                                score += 1
+                            if j2 == len(candidate):
+                                score += 2
+                            elif [j2] == ' ':
+                                score += 1
+                    if score > 0:
+                        matched.append((0, score, candidate))
+
+        # The first two fields are sorted in reverse.
+        # The third text field is sorted by the length of the string, then alphabetically.
+        matched.sort(key=lambda x: (len(x[2]), x[2]))
+        matched.sort(key=lambda x: (x[0], x[1]), reverse=True)
         return matched[:MATCH_LIMIT]
 
     def update_candidates(self):
@@ -372,7 +381,7 @@ def main():
 
     try:
         opts, args = getopt.getopt(sys.argv[1:], shortopt, longopt)
-    except getopt.GetoptError, err:
+    except getopt.GetoptError:
         print_help(sys.stderr, 1)
 
     for o, a in opts:
