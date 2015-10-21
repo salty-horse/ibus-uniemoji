@@ -60,7 +60,15 @@ del n
 
 __base_dir__ = os.path.dirname(__file__)
 
-ranges = [(0x1f300, 0x1f6ff+1), (0x2000, 0x2bff+1)]
+RANGES = (
+    (0x1f300, 0x1f6ff),
+    (0x2000, 0x2bff),
+    (0x1f300, 0x1f5ff), # Miscellaneous Symbols and Pictographs
+    (0x1f900, 0x1f9ff), # Supplemental Symbols and Pictographs
+)
+
+def in_range(code):
+    return any(x <= code <= y for x,y in RANGES)
 
 MATCH_LIMIT = 100
 
@@ -83,19 +91,12 @@ class UniEmoji(IBus.Engine):
         self.prop_list = IBus.PropList()
         self.table = {}
         with codecs.open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
-            _ranges = ranges[:]
-            range = _ranges.pop()
             for line in unicodedata.readlines():
                 if not line.strip(): continue
                 code, name, category, _ = line.split(';', 3)
                 code = int(code, 16)
-                if code < range[0]:
+                if not in_range(code):
                     continue
-                if code > range[1]:
-                    try:
-                        range = _ranges.pop()
-                    except IndexError:
-                        break
                 if category not in ('Sm', 'So', 'Po'):
                     continue
                 self.table[name.lower()] = unichr(code)
