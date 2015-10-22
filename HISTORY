@@ -4,6 +4,7 @@
 - Load custom substitutions from `/etc/xdg/uniemoji/custom.json` and
   `~/.config/uniemoji/custom.json` (or rather, any dir in the XDG config
   path if you have pyxdg installed, which modern distros do by default)
+- Improve fuzzy search ranking. Search terms can be given out of order
 
 # 0.3.0: 🔍😕 — 2015-06-15
 
