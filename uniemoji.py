@@ -61,9 +61,42 @@ del n
 __base_dir__ = os.path.dirname(__file__)
 
 RANGES = (
-    (0x1f300, 0x1f6ff),
-    (0x2000, 0x2bff),
+    (0x2000, 0x206f), # General Punctuation, Layout Controls, Invisible Operators
+    (0x2070, 0x209f), # Superscripts and Subscripts
+    (0x20a0, 0x20cf), # Currency Symbols
+    (0x20ac, 0x20ac), # Euro Sign
+    (0x20d0, 0x20ff), # Combining Diacritical Marks for Symbols
+    (0x2100, 0x214f), # Additional Squared Symbols, Letterlike Symbols
+    (0x2150, 0x218f), # Number Forms
+    (0x2190, 0x21ff), # Arrows
+    (0x2200, 0x22ff), # Mathematical Operators
+    (0x2300, 0x23ff), # Miscellaneous Technical, Floors and Ceilings
+    (0x2336, 0x237a), # APL symbols
+    (0x2400, 0x243f), # Control Pictures
+    (0x2440, 0x245f), # Optical Character Recognition (OCR)
+    (0x2460, 0x24ff), # Enclosed Alphanumerics
+    (0x2500, 0x257f), # Box Drawing
+    (0x2580, 0x259f), # Block Elements
+    (0x25a0, 0x25ff), # Geometric Shapes
+    (0x2600, 0x26ff), # Miscellaneous Symbols
+    (0x2616, 0x2617), # Japanese Chess
+    (0x2654, 0x265f), # Chess
+    (0x2660, 0x2667), # Card suits
+    (0x2630, 0x2637), # Yijing Trigrams
+    (0x268a, 0x268f), # Yijing Monograms and Digrams
+    (0x26c0, 0x26c3), # Checkers/Draughts
+    (0x2700, 0x27bf), # Dingbats
+    (0x27c0, 0x27ef), # Miscellaneous Mathematical Symbols-A
+    (0x27f0, 0x27ff), # Supplemental Arrows-A
+    (0x2800, 0x28ff), # Braille Patterns
+    (0x2900, 0x297f), # Supplemental Arrows-B
+    (0x2980, 0x29ff), # Miscellaneous Mathematical Symbols-B
+    (0x2a00, 0x2aff), # Supplemental Mathematical Operators
+    (0x2b00, 0x2bff), # Additional Shapes, Miscellaneous Symbols and Arrows
     (0x1f300, 0x1f5ff), # Miscellaneous Symbols and Pictographs
+    (0x1f600, 0x1f64f), # Emoticons
+    (0x1f650, 0x1f67f), # Ornamental Dingbats
+    (0x1f680, 0x1f6ff), # Transport and Map Symbols
     (0x1f900, 0x1f9ff), # Supplemental Symbols and Pictographs
 )
 
