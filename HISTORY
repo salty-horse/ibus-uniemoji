@@ -1,3 +1,8 @@
+# Next release: WIP
+
+- Input using well-known “shortnames”, e.g. :grin: or :+1:. The table
+  of shortnames comes courtesy of [Emoji One](http://emojione.com/).
+
 # 0.4.0 👦🏽🌮 — 2015-10-24
 
 - Update UnicodeData to 8.0
