@@ -1,10 +1,12 @@
-# Next release: 👦🏽🌮 WIP
+# 0.4.0 👦🏽🌮 — 2015-10-24
 
 - Update UnicodeData to 8.0
 - Load custom substitutions from `/etc/xdg/uniemoji/custom.json` and
   `~/.config/uniemoji/custom.json` (or rather, any dir in the XDG config
   path if you have pyxdg installed, which modern distros do by default)
 - Improve fuzzy search ranking. Search terms can be given out of order
+- Welcome Ori Avtalion @salty-horse as a core developer. Yay,
+  ibus-uniemoji has a team now!
 
 # 0.3.0: 🔍😕 — 2015-06-15
 
