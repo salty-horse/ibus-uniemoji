@@ -32,6 +32,7 @@ import json
 import getopt
 import locale
 import codecs
+from collections import Counter, defaultdict
 
 from difflib import SequenceMatcher
 
@@ -112,6 +113,17 @@ else:
                      if os.path.isdir(d)]
 
 ###########################################################################
+CANDIDATE_UNICODE = 0
+CANDIDATE_ALIAS = 1
+
+class UniEmojiChar(object):
+    def __init__(self, unicode_str=None, is_emojione=False, is_custom=False):
+        self.unicode_str = unicode_str
+        self.aliasing = []
+        self.is_emojione = is_emojione
+        self.is_custom = is_custom
+
+
 # the engine
 class UniEmoji(IBus.Engine):
     __gtype_name__ = 'UniEmoji'
@@ -122,7 +134,11 @@ class UniEmoji(IBus.Engine):
         self.preedit_string = u""
         self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
         self.prop_list = IBus.PropList()
-        self.table = {}
+        self.table = defaultdict(UniEmojiChar)
+        self.unicode_chars_to_names = {}
+        self.ascii_table = {}
+        self.reverse_ascii_table = {}
+        self.alias_table = {}
         with codecs.open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
             for line in unicodedata.readlines():
                 if not line.strip(): continue
@@ -132,7 +148,54 @@ class UniEmoji(IBus.Engine):
                     continue
                 if category not in ('Sm', 'So', 'Po'):
                     continue
-                self.table[name.lower()] = unichr(code)
+                name = name.lower()
+                unicode_char = unichr(code)
+                self.table[name] = UniEmojiChar(unicode_char)
+                self.unicode_chars_to_names[unicode_char] = name
+
+        # Load emojione file
+        alias_counter = Counter()
+        temp_alias_table = defaultdict(set)
+
+        emojione = json.load(codecs.open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
+        for emoji_shortname, info in emojione.iteritems():
+            unicode_str = u''.join(unichr(int(codepoint, 16)) for codepoint in info['unicode'].split('-'))
+            emoji_shortname = emoji_shortname.replace('_', ' ')
+
+            if emoji_shortname in self.table:
+                # Check for clashes between emojione's names and the existing unicode name.
+                # Clashes turn into aliases.
+                if unicode_str != self.table[emoji_shortname].unicode_str:
+                    self.table[emoji_shortname].aliasing.append(unicode_str)
+            elif info['category'] == 'flags':
+                flag_name = 'flag of ' + info['name']
+                self.table[flag_name] = UniEmojiChar(unicode_str, is_emojione=True)
+                self.unicode_chars_to_names[unicode_str] = flag_name
+            else:
+                self.table[emoji_shortname] = UniEmojiChar(unicode_str, is_emojione=True)
+
+            # When the string defined by emojione isn't in Unicode
+            # (because it's a combination of characters), use emojione's
+            # descriptive name, and set the shortname as an alias
+            if unicode_str not in self.unicode_chars_to_names:
+                long_name = info['name']
+                self.unicode_chars_to_names[unicode_str] = long_name
+                if long_name not in self.table:
+                    self.table[long_name] = UniEmojiChar(unicode_str)
+
+            for alias in info.get('keywords', []):
+                alias_counter[alias] += 1
+                temp_alias_table[alias].add(unicode_str)
+
+            for ascii_aliases in info.get('aliases_ascii', []):
+                self.ascii_table[ascii_aliases] = unicode_str
+                self.reverse_ascii_table[unicode_str] = info['name']
+
+        # Load less-frequent aliases from emojione file
+        for alias, n in alias_counter.most_common():
+            if n >= 20:
+                continue
+            self.table[alias].aliasing.extend(temp_alias_table[alias])
 
         # Load custom file(s)
         for d in reversed(SETTINGS_DIRS):
@@ -152,7 +215,8 @@ class UniEmoji(IBus.Engine):
                     break
                 else:
                     debug(custom_table)
-                    self.table.update(custom_table)
+                    for k, v in custom_table.iteritems():
+                        self.table[k] = UniEmojiChar(v, is_custom=True)
 
         debug("Create UniEmoji engine OK")
 
@@ -270,13 +334,25 @@ class UniEmoji(IBus.Engine):
             return [[0, 0, message] for message in self.table]
 
         if candidates is None: candidates = self.table
+
+        # Matches are tuples of the form:
+        # (match_type, score, name)
+        # Match types are:
+        # * 20 - exact
+        # * 10 - substring
+        # * 5 - substring of alias
+        # * 0 - levenshtein distance
         matched = []
-        for candidate in candidates:
+
+        for candidate, candidate_info in candidates.iteritems():
             if len(query) > len(candidate): continue
 
             if query == candidate:
                 # Exact match
-                matched.append((2, 0, candidate))
+                if candidate_info.unicode_str:
+                    matched.append((20, 0, candidate, CANDIDATE_UNICODE))
+                if candidate_info.aliasing:
+                    matched.append((5, 0, candidate, CANDIDATE_ALIAS))
             else:
                 # Substring match
                 query_words = query.split()
@@ -284,7 +360,10 @@ class UniEmoji(IBus.Engine):
                 if all(ix >= 0 for ix in word_ixs):
                     # For substrings, the closer to the origin, the better
                     score = -(float(sum(word_ixs)) / len(word_ixs))
-                    matched.append((1, score, candidate))
+                    if candidate_info.unicode_str:
+                        matched.append((10, score, candidate, CANDIDATE_UNICODE))
+                    if candidate_info.aliasing:
+                        matched.append((5, score, candidate, CANDIDATE_ALIAS))
                 else:
                     # Levenshtein distance
                     score = 0
@@ -311,7 +390,7 @@ class UniEmoji(IBus.Engine):
                             elif [j2] == ' ':
                                 score += 1
                     if score > 0:
-                        matched.append((0, score, candidate))
+                        matched.append((0, score, candidate, CANDIDATE_UNICODE))
 
         # The first two fields are sorted in reverse.
         # The third text field is sorted by the length of the string, then alphabetically.
@@ -324,11 +403,58 @@ class UniEmoji(IBus.Engine):
         attrs = IBus.AttrList()
         self.lookup_table.clear()
         self.candidates = []
+        candidate_strings = set()
+
         if preedit_len > 0:
-            for level, score, name in self.filter(self.preedit_string.lower()):
-                candidate = IBus.Text.new_from_string(u'{}: {}'.format(self.table[name], name))
-                self.candidates.append(self.table[name])
+            # Look for an ASCII alias that matches exactly
+            ascii_match = self.ascii_table.get(self.preedit_string)
+            if ascii_match:
+                unicode_name = self.reverse_ascii_table[ascii_match]
+                display_str = u'{}: {} ({})'.format(ascii_match, unicode_name, self.preedit_string)
+                candidate = IBus.Text.new_from_string(display_str)
+                self.candidates.append(unicode_name)
                 self.lookup_table.append_candidate(candidate)
+
+            # Look for a fuzzy match against a description
+            for level, score, name, candidate_type in self.filter(self.preedit_string.lower()):
+                uniemoji_char = self.table[name]
+
+                # Since we have several source (UnicodeData.txt, EmojiOne),
+                # make sure we don't output multiple identical candidates
+                if candidate_type == CANDIDATE_UNICODE:
+                    if uniemoji_char.unicode_str in candidate_strings:
+                        continue
+                    candidate_strings.add(uniemoji_char.unicode_str)
+
+                    display_str = None
+                    if uniemoji_char.is_emojione:
+                        unicode_name = self.unicode_chars_to_names.get(uniemoji_char.unicode_str)
+                        if unicode_name and unicode_name != name:
+                            display_str = u'{}: {} (:{}:)'.format(
+                                uniemoji_char.unicode_str,
+                                unicode_name,
+                                name.replace(' ', '_'))
+                    if display_str is None:
+                        display_str = u'{}: {}'.format(uniemoji_char.unicode_str, name)
+
+                    candidate = IBus.Text.new_from_string(display_str)
+                    self.candidates.append(uniemoji_char.unicode_str)
+                    self.lookup_table.append_candidate(candidate)
+
+                # Aliases expand into several candidates
+                for unicode_str in uniemoji_char.aliasing:
+                    if unicode_str in candidate_strings:
+                        continue
+                    candidate_strings.add(unicode_str)
+                    unicode_name = self.unicode_chars_to_names.get(unicode_str)
+                    display_str = u'{}: {} ({})'.format(
+                        unicode_str,
+                        unicode_name,
+                        name)
+                    candidate = IBus.Text.new_from_string(display_str)
+                    self.candidates.append(unicode_str)
+                    self.lookup_table.append_candidate(candidate)
+
         text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
         self.update_auxiliary_text(text, preedit_len > 0)
