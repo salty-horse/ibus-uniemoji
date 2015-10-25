@@ -10,4 +10,5 @@ install:
 
 uninstall:
 	rm -rf /usr/share/ibus-uniemoji
+	rm -rf /etc/xdg/uniemoji
 	rm -f /usr/share/ibus/component/uniemoji.xml
