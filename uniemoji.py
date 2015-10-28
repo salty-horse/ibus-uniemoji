@@ -335,6 +335,9 @@ class UniEmoji(IBus.Engine):
 
         if candidates is None: candidates = self.table
 
+        # Replace '_' in query with ' ' since that's how emojione names are stored
+        query = query.replace('_', ' ')
+
         # Matches are tuples of the form:
         # (match_type, score, name)
         # Match types are:
