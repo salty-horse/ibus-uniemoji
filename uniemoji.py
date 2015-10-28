@@ -356,8 +356,15 @@ class UniEmoji(IBus.Engine):
             else:
                 # Substring match
                 query_words = query.split()
-                word_ixs = [candidate.find(w) for w in query_words]
-                if all(ix >= 0 for ix in word_ixs):
+                word_ixs = []
+                for w in query_words:
+                    ix = candidate.find(w)
+                    if ix == -1:
+                        word_ixs.append(100)
+                    else:
+                        word_ixs.append(ix)
+
+                if word_ixs and all(ix >= 0 for ix in word_ixs):
                     # For substrings, the closer to the origin, the better
                     score = -(float(sum(word_ixs)) / len(word_ixs))
                     if candidate_info.unicode_str:
