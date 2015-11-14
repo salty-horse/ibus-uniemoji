@@ -352,9 +352,11 @@ class UniEmoji(IBus.Engine):
 
     def do_focus_out(self):
         debug("focus_out")
+        self.do_reset()
 
     def do_reset(self):
         debug("reset")
+        self.preedit_string = u""
 
     def do_property_activate(self, prop_name):
         debug("PropertyActivate(%s)" % prop_name)
