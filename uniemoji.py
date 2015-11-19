@@ -123,6 +123,13 @@ class UniEmojiChar(object):
         self.is_emojione = is_emojione
         self.is_custom = is_custom
 
+    def __repr__(self):
+        return 'UniEmojiChar(unicode_str={}, is_emojione={}, is_custom={}, aliasing={})'.format(
+            self.unicode_str,
+            self.is_emojione,
+            self.is_custom,
+            self.aliasing)
+
 
 # the engine
 class UniEmoji(IBus.Engine):
@@ -402,7 +409,10 @@ class UniEmoji(IBus.Engine):
                             elif [j2] == ' ':
                                 score += 1
                     if score > 0:
-                        matched.append((0, score, candidate, CANDIDATE_UNICODE))
+                        if candidate_info.unicode_str:
+                            matched.append((0, score, candidate, CANDIDATE_UNICODE))
+                        if candidate_info.aliasing:
+                            matched.append((0, score, candidate, CANDIDATE_ALIAS))
 
         # The first two fields are sorted in reverse.
         # The third text field is sorted by the length of the string, then alphabetically.
