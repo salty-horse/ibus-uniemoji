@@ -452,10 +452,10 @@ class UniEmoji(IBus.Engine):
                     if uniemoji_char.is_emojione:
                         unicode_name = self.unicode_chars_to_names.get(uniemoji_char.unicode_str)
                         if unicode_name and unicode_name != name:
-                            display_str = u'{}: {} (:{}:)'.format(
+                            display_str = u'{}: :{}: {}'.format(
                                 uniemoji_char.unicode_str,
-                                unicode_name,
-                                name.replace(' ', '_'))
+                                name.replace(' ', '_'),
+                                unicode_name)
                     if display_str is None:
                         display_str = u'{}: {}'.format(uniemoji_char.unicode_str, name)
 
@@ -469,7 +469,7 @@ class UniEmoji(IBus.Engine):
                         continue
                     candidate_strings.add(unicode_str)
                     unicode_name = self.unicode_chars_to_names.get(unicode_str)
-                    display_str = u'{}: {} ({})'.format(
+                    display_str = u'{}: {} [{}]'.format(
                         unicode_str,
                         unicode_name,
                         name)
