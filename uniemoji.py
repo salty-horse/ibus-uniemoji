@@ -143,6 +143,7 @@ class UniEmoji(IBus.Engine):
         self.prop_list = IBus.PropList()
         self.table = defaultdict(UniEmojiChar)
         self.unicode_chars_to_names = {}
+        self.unicode_chars_to_shortnames = {}
         self.ascii_table = {}
         self.reverse_ascii_table = {}
         self.alias_table = {}
@@ -167,6 +168,8 @@ class UniEmoji(IBus.Engine):
         emojione = json.load(codecs.open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
         for emoji_shortname, info in emojione.iteritems():
             unicode_str = u''.join(unichr(int(codepoint, 16)) for codepoint in info['unicode'].split('-'))
+            self.unicode_chars_to_shortnames[unicode_str] = emoji_shortname
+
             emoji_shortname = emoji_shortname.replace('_', ' ')
 
             if emoji_shortname in self.table:
@@ -457,7 +460,13 @@ class UniEmoji(IBus.Engine):
                                 name.replace(' ', '_'),
                                 unicode_name)
                     if display_str is None:
-                        display_str = u'{}: {}'.format(uniemoji_char.unicode_str, name)
+                        shortname = self.unicode_chars_to_shortnames.get(uniemoji_char.unicode_str, '')
+                        if shortname:
+                            shortname = ':' + shortname + ': '
+                        display_str = u'{}: {}{}'.format(
+                            uniemoji_char.unicode_str,
+                            shortname,
+                            name)
 
                     candidate = IBus.Text.new_from_string(display_str)
                     self.candidates.append(uniemoji_char.unicode_str)
@@ -469,8 +478,12 @@ class UniEmoji(IBus.Engine):
                         continue
                     candidate_strings.add(unicode_str)
                     unicode_name = self.unicode_chars_to_names.get(unicode_str)
-                    display_str = u'{}: {} [{}]'.format(
+                    shortname = self.unicode_chars_to_shortnames.get(unicode_str, '')
+                    if shortname:
+                        shortname = ':' + shortname + ': '
+                    display_str = u'{}: {}{} [{}]'.format(
                         unicode_str,
+                        shortname,
                         unicode_name,
                         name)
                     candidate = IBus.Text.new_from_string(display_str)
