@@ -360,14 +360,16 @@ class UniEmoji(IBus.Engine):
                 # Substring match
                 query_words = query.split()
                 word_ixs = []
+                substring_found = False
                 for w in query_words:
                     ix = candidate.find(w)
                     if ix == -1:
                         word_ixs.append(100)
                     else:
+                        substring_found = True
                         word_ixs.append(ix)
 
-                if word_ixs and all(ix >= 0 for ix in word_ixs):
+                if substring_found and all(ix >= 0 for ix in word_ixs):
                     # For substrings, the closer to the origin, the better
                     score = -(float(sum(word_ixs)) / len(word_ixs))
                     if candidate_info.unicode_str:
