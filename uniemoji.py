@@ -130,7 +130,7 @@ class UniEmoji(IBus.Engine):
                 code = int(code, 16)
                 if not in_range(code):
                     continue
-                if category not in ('Sm', 'So', 'Po'):
+                if category not in ('Sm', 'So', 'Po', 'Pd'):
                     continue
                 self.table[name.lower()] = unichr(code)
 
