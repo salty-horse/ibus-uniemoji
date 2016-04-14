@@ -9,7 +9,7 @@
 ifdef user
 INSTALL_DIR=$(HOME)/usr/share/ibus-uniemoji
 COMPONENT_DIR=$(HOME)/.config/ibus/component
-CONFIG_DIR=$(HOME)/.config/unimoji
+CONFIG_DIR=$(HOME)/.config/uniemoji
 else
 INSTALL_DIR=/usr/share/ibus-uniemoji
 COMPONENT_DIR=/usr/share/ibus/component
