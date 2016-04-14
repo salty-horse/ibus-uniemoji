@@ -7,7 +7,7 @@
     <license>GPL</license>
     <author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
     <homepage>https://github.com/lalomartins/ibus-uniemoji</homepage>
-    <exec>/usr/bin/python2 /usr/share/ibus-uniemoji/uniemoji.py --ibus</exec>
+    <exec>/usr/bin/python2 INSTALL_DIR/uniemoji.py --ibus</exec>
     <textdomain>uniemoji</textdomain>
     <engines>
         <engine>
@@ -17,7 +17,7 @@
             <language></language>
             <license>GPL</license>
             <author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
-            <icon>/usr/share/ibus-uniemoji/uniemoji.svg</icon>
+            <icon>INSTALL_DIR/uniemoji.svg</icon>
             <layout>default</layout>
             <layout_variant>default</layout_variant>
             <layout_option>default</layout_option>
