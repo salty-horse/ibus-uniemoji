@@ -27,7 +27,7 @@ Optional:
 Installing
 -----------
 
-To install, type `make install`. If your ibus isn't on /usr/share/ibus, you might need to edit the Makefile. If you want to install to /usr/local, you need to edit both the Makefile and the xml file. Sorry, for now you have to do that by hand. (Just don't be difficult and install it in the normal location!)
+To install, type `make install`. If your ibus isn't on /usr/share/ibus, or you want to install to /usr/local, you can pass any of `PREFIX`, `DATADIR`, and `SYSCONFDIR` to `make`. You can also pass `DESTDIR` to aid in packaging, or `PYTHON` to use a different Python executable.
 
 Running
 --------
