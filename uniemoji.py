@@ -27,6 +27,7 @@ from gi.repository import GLib
 from gi.repository import GObject
 
 import os
+import re
 import sys
 import json
 import getopt
@@ -348,6 +349,15 @@ class UniEmoji(IBus.Engine):
         # Replace '_' in query with ' ' since that's how emojione names are stored
         query = query.replace('_', ' ')
 
+        query_words = []
+        for w in query.split():
+            escaped_w = re.escape(w)
+            query_words.append((
+                w,
+                re.compile(r'\b' + escaped_w + r'\b'),
+                re.compile(r'\b' + escaped_w),
+            ))
+
         # Matches are tuples of the form:
         # (match_type, score, name)
         # Match types are:
@@ -368,10 +378,11 @@ class UniEmoji(IBus.Engine):
                     matched.append((5, 0, candidate, CANDIDATE_ALIAS))
             else:
                 # Substring match
-                query_words = query.split()
                 word_ixs = []
                 substring_found = False
-                for w in query_words:
+                exact_word_match = 0
+                prefix_match = 0
+                for w, exact_regex, prefix_regex in query_words:
                     ix = candidate.find(w)
                     if ix == -1:
                         word_ixs.append(100)
@@ -379,9 +390,19 @@ class UniEmoji(IBus.Engine):
                         substring_found = True
                         word_ixs.append(ix)
 
+                        # Check if an exact word match or a prefix match
+                        if exact_regex.search(candidate):
+                            exact_word_match += 1
+                        elif prefix_regex.search(candidate):
+                            prefix_match += 1
+
                 if substring_found and all(ix >= 0 for ix in word_ixs):
                     # For substrings, the closer to the origin, the better
                     score = -(float(sum(word_ixs)) / len(word_ixs))
+
+                    # Receive a boost if the substring matches a word or a prefix
+                    score += 20 * exact_word_match + 10 * prefix_match
+
                     if candidate_info.unicode_str:
                         matched.append((10, score, candidate, CANDIDATE_UNICODE))
                     if candidate_info.aliasing:
