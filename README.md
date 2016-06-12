@@ -40,6 +40,16 @@ Type some text you believe to be part of the name of an emoji or symbol. Select 
 
 Then you probably want to turn it off so you can type normal text.
 
+Defining custom symbols
+------------------------
+
+The library automatically loads custom symbols from the following files:
+
+* `/etc/xdg/uniemoji/custom.json` (overridden by `make install`!)
+* `~/.config/uniemoji/custom.json`
+
+The file format is a simple JSON object. See [custom.json](custom.json) for an example.
+
 That's it
 ----------
 
