@@ -287,8 +287,6 @@ class UniEmoji(IBus.Engine):
             if keyval == IBus.space and len(self.preedit_string) == 0:
                 # Insert space if that's all you typed (so you can more easily
                 # type a bunch of emoji separated by spaces)
-                # there's a bug here, it's inserting two spaces
-                self.commit_string(' ')
                 return False
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
                 self.preedit_string += unichr(keyval)
