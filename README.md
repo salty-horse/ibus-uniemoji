@@ -66,10 +66,10 @@ A shortname is also a good indication that the candidate has an graphical repres
 * If your search query matches an alias, the alias will be shown in square brackets.
 
 For example, here is a result that appears when you search for 'eggplant' or 'aubergine':
->🍆: :eggplant: aubergine
+>🍆: :​eggplant: aubergine
 
 Here is a result that appears when you search for 'dog', which is one of the aliases for 'paw prints':
->🐾: :feet: paw prints [dog]
+>🐾: :​feet: paw prints [dog]
 
 Credits
 --------
