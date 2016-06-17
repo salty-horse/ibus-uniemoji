@@ -288,13 +288,15 @@ class UniEmoji(IBus.Engine):
                 return True
             elif keyval == IBus.Left or keyval == IBus.Right:
                 return True
-        if (keyval in xrange(IBus.a, IBus.z + 1) or
-            keyval in xrange(IBus.A, IBus.Z + 1) or
-            keyval == IBus.space):
-            if keyval == IBus.space and len(self.preedit_string) == 0:
-                # Insert space if that's all you typed (so you can more easily
-                # type a bunch of emoji separated by spaces)
-                return False
+
+        if keyval == IBus.space and len(self.preedit_string) == 0:
+            # Insert space if that's all you typed (so you can more easily
+            # type a bunch of emoji separated by spaces)
+            return False
+
+        # Allow typing all ASCII letters and punctuation, except digits
+        if ord(' ') <= keyval < ord('0') or \
+           ord('9') < keyval <= ord('~'):
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
                 self.preedit_string += unichr(keyval)
                 self.invalidate()
