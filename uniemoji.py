@@ -62,7 +62,14 @@ del n
 
 __base_dir__ = os.path.dirname(__file__)
 
-RANGES = (
+VALID_CATEGORIES = (
+    'Sm', # Symbol, math
+    'So', # Symbol, other
+    'Pd', # Punctuation, dash
+    'Po', # Punctuation, other
+)
+
+VALID_RANGES = (
     (0x2000, 0x206f), # General Punctuation, Layout Controls, Invisible Operators
     (0x2070, 0x209f), # Superscripts and Subscripts
     (0x20a0, 0x20cf), # Currency Symbols
@@ -103,7 +110,7 @@ RANGES = (
 )
 
 def in_range(code):
-    return any(x <= code <= y for x,y in RANGES)
+    return any(x <= code <= y for x,y in VALID_RANGES)
 
 MATCH_LIMIT = 100
 
@@ -153,9 +160,9 @@ class UniEmoji(IBus.Engine):
                 if not line.strip(): continue
                 code, name, category, _ = line.split(';', 3)
                 code = int(code, 16)
-                if not in_range(code):
+                if category not in VALID_CATEGORIES:
                     continue
-                if category not in ('Sm', 'So', 'Po'):
+                if not in_range(code):
                     continue
                 name = name.lower()
                 unicode_char = unichr(code)
