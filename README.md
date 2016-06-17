@@ -32,7 +32,7 @@ To install, type `make install`. If your ibus isn't on /usr/share/ibus, you migh
 Running
 --------
 
-Restart (or start) your ibus.
+Restart (or start) your ibus. This can be done with the command `ibus restart`.
 
 If you have customized your active input methods, you'll need to enable UniEmoji: open preferences (use the indicator if you have it, otherwise open “Keyboard Input Methods” on Ubuntu's dash, or run “ibus-setup”), go to the “Input Method” tab, click the “Select an input method” drop-down, UniEmoji will be in the “Other” category.
 
@@ -45,12 +45,31 @@ Then you probably want to turn it off so you can type normal text.
 Defining custom symbols
 ------------------------
 
-The library automatically loads custom symbols from the following files:
+UniEmoji automatically loads custom symbols from the following files:
 
 * `/etc/xdg/uniemoji/custom.json` (overridden by `make install`!)
 * `~/.config/uniemoji/custom.json`
 
 The file format is a simple JSON object. See [custom.json](custom.json) for an example.
+
+How the search is done and results are formatted
+-------------------------------------------------
+
+UniEmoji uses several data sources, and allows you to search all of them in a mostly-intelligent manner, with results given priority based on their source.
+
+The search is fuzzy, so searching for 'tco' will find 'taco'. However, it will not correct typos that include extra letters.
+
+The list of candidates that appears in the drop-down includes several bits of information:
+
+* If the character has an "emoji shortname" (provided by EmojiOne), the shortname will appear first in the result, surrounded by colons.
+A shortname is also a good indication that the candidate has an graphical representation, which will be replaced by an actual image on some clients (such as Twitter.com).
+* If your search query matches an alias, the alias will be shown in square brackets.
+
+For example, here is a result that appears when you search for 'eggplant' or 'aubergine':
+>🍆: :eggplant: aubergine
+
+Here is a result that appears when you search for 'dog', which is one of the aliases for 'paw prints':
+>🐾: :feet: paw prints [dog]
 
 Credits
 --------
@@ -58,12 +77,12 @@ Credits
 * Original author: Lalo Martins
 * Current maintainer: Ori Avtalion
 
-This package is dedicated to @MsAmberPRiley who AFAIK isn't even a GNU/Linux user and therefore might never hear of it, but who caused me to detour a Sunday to writing it ;-)
+UniEmoji is dedicated to @MsAmberPRiley who AFAIK isn't even a GNU/Linux user and therefore might never hear of it, but who caused me to detour a Sunday to writing it ;-)
 
 License
 --------
 
-This library is licensed under the GNU General Public License v3.0, except for the following files:
+UniEmoji is licensed under the GNU General Public License v3.0, except for the following files:
 
 * UnicodeData.txt is provided by the [Unicode Consortium](http://unicode.org/) under a specific license. See COPYING.unicode for details.
 * emojione.json is provided by [EmojiOne](http://emojione.com/) under the MIT license.
