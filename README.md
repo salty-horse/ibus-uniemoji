@@ -52,7 +52,18 @@ The library automatically loads custom symbols from the following files:
 
 The file format is a simple JSON object. See [custom.json](custom.json) for an example.
 
-That's it
-----------
+Credits
+--------
+
+* Original author: Lalo Martins
+* Current maintainer: Ori Avtalion
 
 This package is dedicated to @MsAmberPRiley who AFAIK isn't even a GNU/Linux user and therefore might never hear of it, but who caused me to detour a Sunday to writing it ;-)
+
+License
+--------
+
+This library is licensed under the GNU General Public License v3.0, except for the following files:
+
+* UnicodeData.txt is provided by the [Unicode Consortium](http://unicode.org/) under a specific license. See COPYING.unicode for details.
+* emojione.json is provided by [EmojiOne](http://emojione.com/) under the MIT license.
