@@ -175,7 +175,16 @@ class UniEmoji(IBus.Engine):
 
         emojione = json.load(codecs.open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
         for emoji_shortname, info in emojione.iteritems():
-            unicode_str = u''.join(unichr(int(codepoint, 16)) for codepoint in info['unicode'].split('-'))
+
+            # ZWJ emojis such as 'family', 'couple', and 'kiss' appear in an
+            # alternate field
+            alternate_forms = info.get('unicode_alternates')
+            if alternate_forms and '200D' in alternate_forms[0]:
+                chars = alternate_forms[0]
+            else:
+                chars = info['unicode']
+
+            unicode_str = u''.join(unichr(int(codepoint, 16)) for codepoint in chars.split('-'))
             self.unicode_chars_to_shortnames[unicode_str] = emoji_shortname
 
             emoji_shortname = emoji_shortname.replace('_', ' ')
