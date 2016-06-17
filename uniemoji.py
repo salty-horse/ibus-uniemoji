@@ -463,9 +463,9 @@ class UniEmoji(IBus.Engine):
             ascii_match = self.ascii_table.get(self.preedit_string)
             if ascii_match:
                 unicode_name = self.reverse_ascii_table[ascii_match]
-                display_str = u'{}: {} ({})'.format(ascii_match, unicode_name, self.preedit_string)
+                display_str = u'{}: {} [{}]'.format(ascii_match, unicode_name, self.preedit_string)
                 candidate = IBus.Text.new_from_string(display_str)
-                self.candidates.append(unicode_name)
+                self.candidates.append(ascii_match)
                 self.lookup_table.append_candidate(candidate)
 
             # Look for a fuzzy match against a description
