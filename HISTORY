@@ -1,5 +1,6 @@
 # Next release: WIP
 
+- Update UnicodeData to 9.0
 - Input using well-known “shortnames”, e.g. :grin: or :+1:. The table
   of shortnames comes courtesy of [EmojiOne](http://emojione.com/).
   Various EmojiOne aliases are also supported.
