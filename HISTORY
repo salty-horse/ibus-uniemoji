@@ -1,4 +1,4 @@
-# Next release: WIP
+# 0.5.0 🤜🤛 — 2016-06-22
 
 - Update UnicodeData to 9.0
 - Input using well-known “shortnames”, e.g. :grin: or :+1:. The table
