@@ -1,8 +1,8 @@
 # 0.5.0 🤜🤛 — 2016-06-22
 
 - Update UnicodeData to 9.0
-- Input using well-known “shortnames”, e.g. :grin: or :+1:. The table
-  of shortnames comes courtesy of [EmojiOne](http://emojione.com/).
+- Input using well-known “shortnames”, e.g. :​grin: or :​eggplant:.
+  The table of shortnames comes courtesy of [EmojiOne](http://emojione.com/).
   Various EmojiOne aliases are also supported.
 - Allow searching using punctuation. Useful for aliases such as ':)'
 - Dashes have been added to the list of candidates (en-dash, em-dash, etc.)
