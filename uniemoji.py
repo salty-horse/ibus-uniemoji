@@ -210,7 +210,9 @@ class UniEmoji(IBus.Engine):
                 if long_name not in self.table:
                     self.table[long_name] = UniEmojiChar(unicode_str)
 
-            for alias in info.get('keywords', []):
+            # EmojiOne has duplicate entries in the keywords array
+            keywords = set(info.get('keywords', []))
+            for alias in keywords:
                 alias_counter[alias] += 1
                 temp_alias_table[alias].add(unicode_str)
 
