@@ -178,9 +178,10 @@ class UniEmoji(IBus.Engine):
 
             # ZWJ emojis such as 'family', 'couple', and 'kiss' appear in an
             # alternate field
-            alternate_forms = info.get('unicode_alternates')
-            if alternate_forms and '200D' in alternate_forms[0]:
-                chars = alternate_forms[0]
+            alternate_form = info.get('unicode_alternates')
+            if alternate_form and '200d' in alternate_form:
+                print('found alternate', alternate_form)
+                chars = alternate_form
             else:
                 chars = info['unicode']
 
