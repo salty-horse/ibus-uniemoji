@@ -1,3 +1,7 @@
+# Next release: WIP
+
+- UniEmoji now requires Python 3
+
 # 0.5.0 🤜🤛 — 2016-06-22
 
 - Update UnicodeData to 9.0

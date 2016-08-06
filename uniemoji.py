@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 # UniEmoji: ibus engine for unicode emoji and symbols by name
 #
@@ -19,8 +19,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-
-from __future__ import print_function
 
 from gi.repository import IBus
 from gi.repository import GLib
@@ -146,7 +144,7 @@ class UniEmoji(IBus.Engine):
     def __init__(self):
         super(UniEmoji, self).__init__()
         self.is_invalidate = False
-        self.preedit_string = u""
+        self.preedit_string = ''
         self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
         self.prop_list = IBus.PropList()
         self.table = defaultdict(UniEmojiChar)
@@ -165,7 +163,7 @@ class UniEmoji(IBus.Engine):
                 if not in_range(code):
                     continue
                 name = name.lower()
-                unicode_char = unichr(code)
+                unicode_char = chr(code)
                 self.table[name] = UniEmojiChar(unicode_char)
                 self.unicode_chars_to_names[unicode_char] = name
 
@@ -174,7 +172,7 @@ class UniEmoji(IBus.Engine):
         temp_alias_table = defaultdict(set)
 
         emojione = json.load(codecs.open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
-        for emoji_shortname, info in emojione.iteritems():
+        for emoji_shortname, info in emojione.items():
 
             # ZWJ emojis such as 'family', 'couple', and 'kiss' appear in an
             # alternate field
@@ -184,7 +182,7 @@ class UniEmoji(IBus.Engine):
             else:
                 chars = info['unicode']
 
-            unicode_str = u''.join(unichr(int(codepoint, 16)) for codepoint in chars.split('-'))
+            unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in chars.split('-'))
             self.unicode_chars_to_shortnames[unicode_str] = emoji_shortname
 
             emoji_shortname = emoji_shortname.replace('_', ' ')
@@ -239,12 +237,12 @@ class UniEmoji(IBus.Engine):
                     error = sys.exc_info()[1]
                     debug(error)
                     self.table = {
-                        u'Failed to load custom file {}: {}'.format(custom_filename, error): u'ERROR'
+                        'Failed to load custom file {}: {}'.format(custom_filename, error): 'ERROR'
                     }
                     break
                 else:
                     debug(custom_table)
-                    for k, v in custom_table.iteritems():
+                    for k, v in custom_table.items():
                         self.table[k] = UniEmojiChar(v, is_custom=True)
 
         debug("Create UniEmoji engine OK")
@@ -265,7 +263,7 @@ class UniEmoji(IBus.Engine):
                     self.commit_string(self.preedit_string)
                 return True
             elif keyval == IBus.Escape:
-                self.preedit_string = u""
+                self.preedit_string = ''
                 self.update_candidates()
                 return True
             elif keyval == IBus.BackSpace:
@@ -309,7 +307,7 @@ class UniEmoji(IBus.Engine):
         if ord(' ') <= keyval < ord('0') or \
            ord('9') < keyval <= ord('~'):
             if state & (IBus.ModifierType.CONTROL_MASK | IBus.ModifierType.MOD1_MASK) == 0:
-                self.preedit_string += unichr(keyval)
+                self.preedit_string += chr(keyval)
                 self.invalidate()
                 return True
         else:
@@ -351,7 +349,7 @@ class UniEmoji(IBus.Engine):
 
     def commit_string(self, text):
         self.commit_text(IBus.Text.new_from_string(text))
-        self.preedit_string = u""
+        self.preedit_string = ''
         self.update_candidates()
 
     def commit_candidate(self):
@@ -385,7 +383,7 @@ class UniEmoji(IBus.Engine):
         # * 0 - levenshtein distance
         matched = []
 
-        for candidate, candidate_info in candidates.iteritems():
+        for candidate, candidate_info in candidates.items():
             if len(query) > len(candidate): continue
 
             if query == candidate:
@@ -474,7 +472,7 @@ class UniEmoji(IBus.Engine):
             ascii_match = self.ascii_table.get(self.preedit_string)
             if ascii_match:
                 unicode_name = self.reverse_ascii_table[ascii_match]
-                display_str = u'{}: {} [{}]'.format(ascii_match, unicode_name, self.preedit_string)
+                display_str = '{}: {} [{}]'.format(ascii_match, unicode_name, self.preedit_string)
                 candidate = IBus.Text.new_from_string(display_str)
                 self.candidates.append(ascii_match)
                 self.lookup_table.append_candidate(candidate)
@@ -494,7 +492,7 @@ class UniEmoji(IBus.Engine):
                     if uniemoji_char.is_emojione:
                         unicode_name = self.unicode_chars_to_names.get(uniemoji_char.unicode_str)
                         if unicode_name and unicode_name != name:
-                            display_str = u'{}: :{}: {}'.format(
+                            display_str = '{}: :{}: {}'.format(
                                 uniemoji_char.unicode_str,
                                 name.replace(' ', '_'),
                                 unicode_name)
@@ -502,7 +500,7 @@ class UniEmoji(IBus.Engine):
                         shortname = self.unicode_chars_to_shortnames.get(uniemoji_char.unicode_str, '')
                         if shortname:
                             shortname = ':' + shortname + ': '
-                        display_str = u'{}: {}{}'.format(
+                        display_str = '{}: {}{}'.format(
                             uniemoji_char.unicode_str,
                             shortname,
                             name)
@@ -520,7 +518,7 @@ class UniEmoji(IBus.Engine):
                     shortname = self.unicode_chars_to_shortnames.get(unicode_str, '')
                     if shortname:
                         shortname = ':' + shortname + ': '
-                    display_str = u'{}: {}{} [{}]'.format(
+                    display_str = '{}: {}{} [{}]'.format(
                         unicode_str,
                         shortname,
                         unicode_name,
@@ -556,7 +554,7 @@ class UniEmoji(IBus.Engine):
 
     def do_reset(self):
         debug("reset")
-        self.preedit_string = u""
+        self.preedit_string = ''
 
     def do_property_activate(self, prop_name):
         debug("PropertyActivate(%s)" % prop_name)
