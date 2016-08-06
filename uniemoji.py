@@ -180,7 +180,6 @@ class UniEmoji(IBus.Engine):
             # alternate field
             alternate_form = info.get('unicode_alternates')
             if alternate_form and '200d' in alternate_form:
-                print('found alternate', alternate_form)
                 chars = alternate_form
             else:
                 chars = info['unicode']
