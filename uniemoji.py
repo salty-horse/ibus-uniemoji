@@ -559,6 +559,11 @@ class UniEmoji(IBus.Engine):
     def do_property_activate(self, prop_name):
         debug("PropertyActivate(%s)" % prop_name)
 
+    def do_page_up(self):
+        return self.page_up()
+
+    def do_page_down(self):
+        return self.page_down()
 
 ###########################################################################
 # the app (main interface to ibus)
