@@ -247,6 +247,10 @@ class UniEmoji(IBus.Engine):
 
         debug("Create UniEmoji engine OK")
 
+    def do_candidate_clicked(self, index, dummy_button, dummy_state):
+        self.lookup_table.set_cursor_pos(index)
+        self.commit_candidate()
+
     def do_process_key_event(self, keyval, keycode, state):
         debug("process_key_event(%04x, %04x, %04x)" % (keyval, keycode, state))
 
