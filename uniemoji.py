@@ -247,9 +247,25 @@ class UniEmoji(IBus.Engine):
 
         debug("Create UniEmoji engine OK")
 
+    def set_lookup_table_cursor_pos_in_current_page(self, index):
+        '''Sets the cursor in the lookup table to index in the current page
+
+        Returns True if successful, False if not.
+        '''
+        page_size = self.lookup_table.get_page_size()
+        if index > page_size:
+            return False
+        page, pos_in_page = divmod(self.lookup_table.get_cursor_pos(),
+                                   page_size)
+        new_pos = page * page_size + index
+        if new_pos > self.lookup_table.get_number_of_candidates():
+            return False
+        self.lookup_table.set_cursor_pos(new_pos)
+        return True
+
     def do_candidate_clicked(self, index, dummy_button, dummy_state):
-        self.lookup_table.set_cursor_pos(index)
-        self.commit_candidate()
+        if self.set_lookup_table_cursor_pos_in_current_page(index):
+            self.commit_candidate()
 
     def do_process_key_event(self, keyval, keycode, state):
         debug("process_key_event(%04x, %04x, %04x)" % (keyval, keycode, state))
@@ -276,17 +292,10 @@ class UniEmoji(IBus.Engine):
                 return True
             elif keyval in num_keys[1:]:
                 index = num_keys.index(keyval) - 1
-                page_size = self.lookup_table.get_page_size()
-                if index > page_size:
-                    return False
-                page, pos_in_page = divmod(self.lookup_table.get_cursor_pos(),
-                                           page_size)
-                new_pos = page * page_size + index
-                if new_pos > self.lookup_table.get_number_of_candidates():
-                    return False
-                self.lookup_table.set_cursor_pos(new_pos)
-                self.commit_candidate()
-                return True
+                if self.set_lookup_table_cursor_pos_in_current_page(index):
+                    self.commit_candidate()
+                    return True
+                return False
             elif keyval == IBus.Page_Up or keyval == IBus.KP_Page_Up:
                 self.page_up()
                 return True
