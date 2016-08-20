@@ -1,6 +1,7 @@
 # Next release: WIP
 
 - UniEmoji now requires Python 3
+- The IBus window finally responds to mouse clicks (thanks Mike Fabian @mike-fabian)
 
 # 0.5.0 🤜🤛 — 2016-06-22
 
