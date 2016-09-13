@@ -2,7 +2,7 @@
 
 - UniEmoji now requires Python 3
 - The IBus window finally responds to mouse clicks (thanks Mike Fabian @mike-fabian)
-- Currency symbols added to the list of candidates
+- Currency symbols added to the list of candidates (Mike Fabian)
 
 # 0.5.0 🤜🤛 — 2016-06-22
 
