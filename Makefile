@@ -21,8 +21,13 @@ install: all
 	install -m 0644 custom.json $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji
 
 uninstall:
-	rm -rf $(DESTDIR)$(DATADIR)/ibus-uniemoji
-	rm -rf $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/uniemoji.svg
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/UnicodeData.txt
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/emojione.json
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/uniemoji.py
+	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	rm -f $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji/custom.json
+	rmdir $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji
 	rm -f $(DESTDIR)$(DATADIR)/ibus/component/uniemoji.xml
 
 clean:
