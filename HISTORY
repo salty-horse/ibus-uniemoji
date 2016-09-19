@@ -3,6 +3,8 @@
 - UniEmoji now requires Python 3
 - The IBus window finally responds to mouse clicks (thanks Mike Fabian @mike-fabian)
 - Currency symbols added to the list of candidates (Mike Fabian)
+- The installation can now be customized with the variables PREFIX, SYSCONFDIR,
+  DATADIR, DESTDIR, PYTHON (thanks Brian Tarricone @kelnos, Roland Hieber @rohieb)
 
 # 0.5.0 🤜🤛 — 2016-06-22
 
