@@ -15,7 +15,7 @@ uniemoji.xml: uniemoji.xml.in
 
 install: all
 	install -m 0755 -d $(DESTDIR)$(DATADIR)/ibus-uniemoji $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji $(DESTDIR)$(DATADIR)/ibus/component
-	install -m 0644 uniemoji.svg UnicodeData.txt $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	install -m 0644 uniemoji.svg UnicodeData.txt emojione.json $(DESTDIR)$(DATADIR)/ibus-uniemoji
 	install -m 0755 uniemoji.py $(DESTDIR)$(DATADIR)/ibus-uniemoji
 	install -m 0644 uniemoji.xml $(DESTDIR)$(DATADIR)/ibus/component
 	install -m 0644 custom.json $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji
