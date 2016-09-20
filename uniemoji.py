@@ -130,8 +130,6 @@ VALID_RANGES = (
 def in_range(code):
     return any(x <= code <= y for x,y in VALID_RANGES)
 
-MATCH_LIMIT = 100
-
 if xdg:
     SETTINGS_DIRS = list(xdg.BaseDirectory.load_config_paths('uniemoji'))
 else:
@@ -157,16 +155,9 @@ class UniEmojiChar(object):
             self.aliasing)
 
 
-# the engine
-class UniEmoji(IBus.Engine):
-    __gtype_name__ = 'UniEmoji'
-
+class UniEmoji():
     def __init__(self):
         super(UniEmoji, self).__init__()
-        self.is_invalidate = False
-        self.preedit_string = ''
-        self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
-        self.prop_list = IBus.PropList()
         self.table = defaultdict(UniEmojiChar)
         self.unicode_chars_to_names = {}
         self.unicode_chars_to_shortnames = {}
@@ -264,6 +255,186 @@ class UniEmoji(IBus.Engine):
                     debug(custom_table)
                     for k, v in custom_table.items():
                         self.table[k] = UniEmojiChar(v, is_custom=True)
+
+    def _filter(self, query, limit=100):
+        if len(self.table) <= 10:
+            # this only happens if something went wrong; it's our cheap way of displaying errors
+            return [[0, 0, message] for message in self.table]
+
+        candidates = self.table
+
+        # Replace '_' in query with ' ' since that's how emojione names are stored
+        query = query.replace('_', ' ')
+
+        query_words = []
+        for w in query.split():
+            escaped_w = re.escape(w)
+            query_words.append((
+                w,
+                re.compile(r'\b' + escaped_w + r'\b'),
+                re.compile(r'\b' + escaped_w),
+            ))
+
+        # Matches are tuples of the form:
+        # (match_type, score, name)
+        # Match types are:
+        # * 20 - exact
+        # * 10 - substring
+        # * 5 - substring of alias
+        # * 0 - levenshtein distance
+        matched = []
+
+        for candidate, candidate_info in candidates.items():
+            if len(query) > len(candidate): continue
+
+            if query == candidate:
+                # Exact match
+                if candidate_info.unicode_str:
+                    matched.append((20, 0, candidate, CANDIDATE_UNICODE))
+                if candidate_info.aliasing:
+                    matched.append((5, 0, candidate, CANDIDATE_ALIAS))
+            else:
+                # Substring match
+                word_ixs = []
+                substring_found = False
+                exact_word_match = 0
+                prefix_match = 0
+                for w, exact_regex, prefix_regex in query_words:
+                    ix = candidate.find(w)
+                    if ix == -1:
+                        word_ixs.append(100)
+                    else:
+                        substring_found = True
+                        word_ixs.append(ix)
+
+                        # Check if an exact word match or a prefix match
+                        if exact_regex.search(candidate):
+                            exact_word_match += 1
+                        elif prefix_regex.search(candidate):
+                            prefix_match += 1
+
+                if substring_found and all(ix >= 0 for ix in word_ixs):
+                    # For substrings, the closer to the origin, the better
+                    score = -(float(sum(word_ixs)) / len(word_ixs))
+
+                    # Receive a boost if the substring matches a word or a prefix
+                    score += 20 * exact_word_match + 10 * prefix_match
+
+                    if candidate_info.unicode_str:
+                        matched.append((10, score, candidate, CANDIDATE_UNICODE))
+                    if candidate_info.aliasing:
+                        matched.append((5, score, candidate, CANDIDATE_ALIAS))
+                else:
+                    # Levenshtein distance
+                    score = 0
+                    if Levenshtein is None:
+                        opcodes = SequenceMatcher(None, query, candidate,
+                            autojunk=False).get_opcodes()
+                    else:
+                        opcodes = Levenshtein.opcodes(query, candidate)
+                    for (tag, i1, i2, j1, j2) in opcodes:
+                        if tag in ('replace', 'delete'):
+                            score = 0
+                            break
+                        if tag == 'insert':
+                            score -= 1
+                        if tag == 'equal':
+                            score += i2 - i1
+                            # favor word boundaries
+                            if j1 == 0:
+                                score += 2
+                            elif candidate[j1 - 1] == ' ':
+                                score += 1
+                            if j2 == len(candidate):
+                                score += 2
+                            elif [j2] == ' ':
+                                score += 1
+                    if score > 0:
+                        if candidate_info.unicode_str:
+                            matched.append((0, score, candidate, CANDIDATE_UNICODE))
+                        if candidate_info.aliasing:
+                            matched.append((0, score, candidate, CANDIDATE_ALIAS))
+
+        # The first two fields are sorted in reverse.
+        # The third text field is sorted by the length of the string, then alphabetically.
+        matched.sort(key=lambda x: (len(x[2]), x[2]))
+        matched.sort(key=lambda x: (x[0], x[1]), reverse=True)
+        return matched[:limit]
+
+    def find_characters(self, query_string):
+        results = []
+        candidate_strings = set()
+
+        if not query_string:
+            return results
+
+        # Look for an ASCII alias that matches exactly
+        ascii_match = self.ascii_table.get(query_string)
+        if ascii_match:
+            unicode_name = self.reverse_ascii_table[ascii_match]
+            display_str = '{}: {} [{}]'.format(ascii_match, unicode_name, query_string)
+            results.append((ascii_match, display_str))
+
+        # Look for a fuzzy match against a description
+        for level, score, name, candidate_type in self._filter(query_string.lower()):
+            uniemoji_char = self.table[name]
+
+            # Since we have several source (UnicodeData.txt, EmojiOne),
+            # make sure we don't output multiple identical candidates
+            if candidate_type == CANDIDATE_UNICODE:
+                if uniemoji_char.unicode_str in candidate_strings:
+                    continue
+                candidate_strings.add(uniemoji_char.unicode_str)
+
+                display_str = None
+                if uniemoji_char.is_emojione:
+                    unicode_name = self.unicode_chars_to_names.get(uniemoji_char.unicode_str)
+                    if unicode_name and unicode_name != name:
+                        display_str = '{}: :{}: {}'.format(
+                            uniemoji_char.unicode_str,
+                            name.replace(' ', '_'),
+                            unicode_name)
+                if display_str is None:
+                    shortname = self.unicode_chars_to_shortnames.get(uniemoji_char.unicode_str, '')
+                    if shortname:
+                        shortname = ':' + shortname + ': '
+                    display_str = '{}: {}{}'.format(
+                        uniemoji_char.unicode_str,
+                        shortname,
+                        name)
+
+                results.append((uniemoji_char.unicode_str, display_str))
+
+            # Aliases expand into several candidates
+            for unicode_str in uniemoji_char.aliasing:
+                if unicode_str in candidate_strings:
+                    continue
+                candidate_strings.add(unicode_str)
+                unicode_name = self.unicode_chars_to_names.get(unicode_str)
+                shortname = self.unicode_chars_to_shortnames.get(unicode_str, '')
+                if shortname:
+                    shortname = ':' + shortname + ': '
+                display_str = '{}: {}{} [{}]'.format(
+                    unicode_str,
+                    shortname,
+                    unicode_name,
+                    name)
+                results.append((unicode_str, display_str))
+
+        return results
+
+###########################################################################
+# the engine
+class UniEmojiIBusEngine(IBus.Engine):
+    __gtype_name__ = 'UniEmojiIBusEngine'
+
+    def __init__(self):
+        super(UniEmojiIBusEngine, self).__init__()
+        self.uniemoji = UniEmoji()
+        self.is_invalidate = False
+        self.preedit_string = ''
+        self.lookup_table = IBus.LookupTable.new(10, 0, True, True)
+        self.prop_list = IBus.PropList()
 
         debug("Create UniEmoji engine OK")
 
@@ -388,177 +559,18 @@ class UniEmoji(IBus.Engine):
     def commit_candidate(self):
         self.commit_string(self.candidates[self.lookup_table.get_cursor_pos()])
 
-    def filter(self, query, candidates = None):
-        if len(self.table) <= 10:
-            # this only happens if something went wrong; it's our cheap way of displaying errors
-            return [[0, 0, message] for message in self.table]
-
-        if candidates is None: candidates = self.table
-
-        # Replace '_' in query with ' ' since that's how emojione names are stored
-        query = query.replace('_', ' ')
-
-        query_words = []
-        for w in query.split():
-            escaped_w = re.escape(w)
-            query_words.append((
-                w,
-                re.compile(r'\b' + escaped_w + r'\b'),
-                re.compile(r'\b' + escaped_w),
-            ))
-
-        # Matches are tuples of the form:
-        # (match_type, score, name)
-        # Match types are:
-        # * 20 - exact
-        # * 10 - substring
-        # * 5 - substring of alias
-        # * 0 - levenshtein distance
-        matched = []
-
-        for candidate, candidate_info in candidates.items():
-            if len(query) > len(candidate): continue
-
-            if query == candidate:
-                # Exact match
-                if candidate_info.unicode_str:
-                    matched.append((20, 0, candidate, CANDIDATE_UNICODE))
-                if candidate_info.aliasing:
-                    matched.append((5, 0, candidate, CANDIDATE_ALIAS))
-            else:
-                # Substring match
-                word_ixs = []
-                substring_found = False
-                exact_word_match = 0
-                prefix_match = 0
-                for w, exact_regex, prefix_regex in query_words:
-                    ix = candidate.find(w)
-                    if ix == -1:
-                        word_ixs.append(100)
-                    else:
-                        substring_found = True
-                        word_ixs.append(ix)
-
-                        # Check if an exact word match or a prefix match
-                        if exact_regex.search(candidate):
-                            exact_word_match += 1
-                        elif prefix_regex.search(candidate):
-                            prefix_match += 1
-
-                if substring_found and all(ix >= 0 for ix in word_ixs):
-                    # For substrings, the closer to the origin, the better
-                    score = -(float(sum(word_ixs)) / len(word_ixs))
-
-                    # Receive a boost if the substring matches a word or a prefix
-                    score += 20 * exact_word_match + 10 * prefix_match
-
-                    if candidate_info.unicode_str:
-                        matched.append((10, score, candidate, CANDIDATE_UNICODE))
-                    if candidate_info.aliasing:
-                        matched.append((5, score, candidate, CANDIDATE_ALIAS))
-                else:
-                    # Levenshtein distance
-                    score = 0
-                    if Levenshtein is None:
-                        opcodes = SequenceMatcher(None, query, candidate,
-                            autojunk=False).get_opcodes()
-                    else:
-                        opcodes = Levenshtein.opcodes(query, candidate)
-                    for (tag, i1, i2, j1, j2) in opcodes:
-                        if tag in ('replace', 'delete'):
-                            score = 0
-                            break
-                        if tag == 'insert':
-                            score -= 1
-                        if tag == 'equal':
-                            score += i2 - i1
-                            # favor word boundaries
-                            if j1 == 0:
-                                score += 2
-                            elif candidate[j1 - 1] == ' ':
-                                score += 1
-                            if j2 == len(candidate):
-                                score += 2
-                            elif [j2] == ' ':
-                                score += 1
-                    if score > 0:
-                        if candidate_info.unicode_str:
-                            matched.append((0, score, candidate, CANDIDATE_UNICODE))
-                        if candidate_info.aliasing:
-                            matched.append((0, score, candidate, CANDIDATE_ALIAS))
-
-        # The first two fields are sorted in reverse.
-        # The third text field is sorted by the length of the string, then alphabetically.
-        matched.sort(key=lambda x: (len(x[2]), x[2]))
-        matched.sort(key=lambda x: (x[0], x[1]), reverse=True)
-        return matched[:MATCH_LIMIT]
-
     def update_candidates(self):
         preedit_len = len(self.preedit_string)
         attrs = IBus.AttrList()
         self.lookup_table.clear()
         self.candidates = []
-        candidate_strings = set()
 
         if preedit_len > 0:
-            # Look for an ASCII alias that matches exactly
-            ascii_match = self.ascii_table.get(self.preedit_string)
-            if ascii_match:
-                unicode_name = self.reverse_ascii_table[ascii_match]
-                display_str = '{}: {} [{}]'.format(ascii_match, unicode_name, self.preedit_string)
+            uniemoji_results = self.uniemoji.find_characters(self.preedit_string)
+            for char_sequence, display_str in uniemoji_results:
                 candidate = IBus.Text.new_from_string(display_str)
-                self.candidates.append(ascii_match)
+                self.candidates.append(char_sequence)
                 self.lookup_table.append_candidate(candidate)
-
-            # Look for a fuzzy match against a description
-            for level, score, name, candidate_type in self.filter(self.preedit_string.lower()):
-                uniemoji_char = self.table[name]
-
-                # Since we have several source (UnicodeData.txt, EmojiOne),
-                # make sure we don't output multiple identical candidates
-                if candidate_type == CANDIDATE_UNICODE:
-                    if uniemoji_char.unicode_str in candidate_strings:
-                        continue
-                    candidate_strings.add(uniemoji_char.unicode_str)
-
-                    display_str = None
-                    if uniemoji_char.is_emojione:
-                        unicode_name = self.unicode_chars_to_names.get(uniemoji_char.unicode_str)
-                        if unicode_name and unicode_name != name:
-                            display_str = '{}: :{}: {}'.format(
-                                uniemoji_char.unicode_str,
-                                name.replace(' ', '_'),
-                                unicode_name)
-                    if display_str is None:
-                        shortname = self.unicode_chars_to_shortnames.get(uniemoji_char.unicode_str, '')
-                        if shortname:
-                            shortname = ':' + shortname + ': '
-                        display_str = '{}: {}{}'.format(
-                            uniemoji_char.unicode_str,
-                            shortname,
-                            name)
-
-                    candidate = IBus.Text.new_from_string(display_str)
-                    self.candidates.append(uniemoji_char.unicode_str)
-                    self.lookup_table.append_candidate(candidate)
-
-                # Aliases expand into several candidates
-                for unicode_str in uniemoji_char.aliasing:
-                    if unicode_str in candidate_strings:
-                        continue
-                    candidate_strings.add(unicode_str)
-                    unicode_name = self.unicode_chars_to_names.get(unicode_str)
-                    shortname = self.unicode_chars_to_shortnames.get(unicode_str, '')
-                    if shortname:
-                        shortname = ':' + shortname + ': '
-                    display_str = '{}: {}{} [{}]'.format(
-                        unicode_str,
-                        shortname,
-                        unicode_name,
-                        name)
-                    candidate = IBus.Text.new_from_string(display_str)
-                    self.candidates.append(unicode_str)
-                    self.lookup_table.append_candidate(candidate)
 
         text = IBus.Text.new_from_string(self.preedit_string)
         text.set_attributes(attrs)
@@ -575,7 +587,6 @@ class UniEmoji(IBus.Engine):
     def _update_lookup_table(self):
         visible = self.lookup_table.get_number_of_candidates() > 0
         self.update_lookup_table(self.lookup_table, visible)
-
 
     def do_focus_in(self):
         debug("focus_in")
@@ -609,7 +620,7 @@ class IMApp:
         self.bus = IBus.Bus()
         self.bus.connect("disconnected", self.bus_disconnected_cb)
         self.factory = IBus.Factory.new(self.bus.get_connection())
-        self.factory.add_engine("uniemoji", GObject.type_from_name("UniEmoji"))
+        self.factory.add_engine("uniemoji", GObject.type_from_name("UniEmojiIBusEngine"))
         if exec_by_ibus:
             self.bus.request_name("org.freedesktop.IBus.UniEmoji", 0)
         else:
