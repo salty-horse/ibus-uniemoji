@@ -47,6 +47,12 @@ except ImportError:
 else:
     import xdg.BaseDirectory
 
+# Get SYS_CONF_DIR here
+try:
+    from config import SYS_CONF_DIR
+except ImportError:
+    SYS_CONF_DIR = '/etc'
+
 debug_on = True
 def debug(*a, **kw):
     if debug_on:
@@ -129,7 +135,7 @@ MATCH_LIMIT = 100
 if xdg:
     SETTINGS_DIRS = list(xdg.BaseDirectory.load_config_paths('uniemoji'))
 else:
-    SETTINGS_DIRS = [d for d in [os.path.expanduser('~/.config/uniemoji'), '/etc/xdg/uniemoji']
+    SETTINGS_DIRS = [d for d in [os.path.expanduser('~/.config/uniemoji'), '{}/xdg/uniemoji'.format(SYS_CONF_DIR)]
                      if os.path.isdir(d)]
 
 ###########################################################################
