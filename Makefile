@@ -11,7 +11,8 @@ PYTHON ?= /usr/bin/python3
 all: uniemoji.xml
 
 uniemoji.xml: uniemoji.xml.in
-	sed -e "s:@PYTHON@:$(PYTHON):g; s:@DATADIR@:$(DATADIR):g" $< > $@
+	sed -e "s:@PYTHON@:$(PYTHON):g;" \
+	    -e "s:@DATADIR@:$(DATADIR):g" $< > $@
 
 install: all
 	install -m 0755 -d $(DESTDIR)$(DATADIR)/ibus-uniemoji $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji $(DESTDIR)$(DATADIR)/ibus/component

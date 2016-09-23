@@ -17,7 +17,7 @@
             <language></language>
             <license>GPL</license>
             <author>Lalo Martins &lt;lalo.martins@gmail.com&gt;</author>
-            <icon>/usr/share/ibus-uniemoji/uniemoji.svg</icon>
+            <icon>@DATADIR@/ibus-uniemoji/uniemoji.svg</icon>
             <layout>default</layout>
             <layout_variant>default</layout_variant>
             <layout_option>default</layout_option>
