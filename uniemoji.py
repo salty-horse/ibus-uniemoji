@@ -22,7 +22,6 @@ import os
 import re
 import sys
 import json
-import codecs
 from collections import Counter, defaultdict
 
 from difflib import SequenceMatcher
@@ -150,7 +149,7 @@ class UniEmoji():
         self.ascii_table = {}
         self.reverse_ascii_table = {}
         self.alias_table = {}
-        with codecs.open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
+        with open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
             for line in unicodedata.readlines():
                 if not line.strip(): continue
                 code, name, category, _ = line.split(';', 3)
@@ -168,7 +167,7 @@ class UniEmoji():
         alias_counter = Counter()
         temp_alias_table = defaultdict(set)
 
-        emojione = json.load(codecs.open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
+        emojione = json.load(open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
         for emoji_shortname, info in emojione.items():
 
             # ZWJ emojis such as 'family', 'couple', and 'kiss' appear in an
@@ -228,7 +227,7 @@ class UniEmoji():
             if os.path.isfile(custom_filename):
                 custom_table = None
                 try:
-                    with codecs.open(custom_filename, encoding='utf-8') as f:
+                    with open(custom_filename, encoding='utf-8') as f:
                         custom_table = json.loads(f.read())
                 except:
                     error = sys.exc_info()[1]
