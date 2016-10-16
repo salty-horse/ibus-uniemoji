@@ -216,7 +216,7 @@ class UniEmoji():
 
         # Load less-frequent aliases from emojione file
         for alias, n in alias_counter.most_common():
-            if n >= 20:
+            if n >= 25:
                 continue
             self.table[alias].aliasing.extend(temp_alias_table[alias])
 
