@@ -230,6 +230,12 @@ class UniEmojiIBusEngine(IBus.Engine):
     def do_page_down(self):
         return self.page_down()
 
+    def do_cursor_up(self):
+        return self.cursor_up()
+
+    def do_cursor_down(self):
+        return self.cursor_down()
+
 ###########################################################################
 # the app (main interface to ibus)
 class IMApp:
