@@ -167,18 +167,13 @@ class UniEmoji():
         alias_counter = Counter()
         temp_alias_table = defaultdict(set)
 
-        emojione = json.load(open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
-        for emoji_shortname, info in emojione.items():
+        emojione_data = json.load(open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
+        for emoji_info in emojione_data.values():
 
-            # ZWJ emojis such as 'family', 'couple', and 'kiss' appear in an
-            # alternate field
-            alternate_form = info.get('unicode_alternates')
-            if alternate_form and '200d' in alternate_form:
-                chars = alternate_form
-            else:
-                chars = info['unicode']
+            codepoints = emoji_info['code_points']['output']
 
-            unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in chars.split('-'))
+            unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in codepoints.split('-'))
+            emoji_shortname = emoji_info['shortname'][1:-1]
             self.unicode_chars_to_shortnames[unicode_str] = emoji_shortname
 
             emoji_shortname = emoji_shortname.replace('_', ' ')
@@ -188,8 +183,8 @@ class UniEmoji():
                 # Clashes turn into aliases.
                 if unicode_str != self.table[emoji_shortname].unicode_str:
                     self.table[emoji_shortname].aliasing.append(unicode_str)
-            elif info['category'] == 'flags':
-                flag_name = 'flag of ' + info['name']
+            elif emoji_info['category'] == 'flags' and ' flag' not in emoji_info['name']:
+                flag_name = 'flag of ' + emoji_info['name']
                 self.table[flag_name] = UniEmojiChar(unicode_str, is_emojione=True)
                 self.unicode_chars_to_names[unicode_str] = flag_name
             else:
@@ -199,20 +194,18 @@ class UniEmoji():
             # (because it's a combination of characters), use emojione's
             # descriptive name, and set the shortname as an alias
             if unicode_str not in self.unicode_chars_to_names:
-                long_name = info['name']
+                long_name = emoji_info['name']
                 self.unicode_chars_to_names[unicode_str] = long_name
                 if long_name not in self.table:
                     self.table[long_name] = UniEmojiChar(unicode_str)
 
-            # EmojiOne has duplicate entries in the keywords array
-            keywords = set(info.get('keywords', []))
-            for alias in keywords:
+            for alias in emoji_info.get('keywords', []):
                 alias_counter[alias] += 1
                 temp_alias_table[alias].add(unicode_str)
 
-            for ascii_aliases in info.get('aliases_ascii', []):
+            for ascii_aliases in emoji_info.get('aliases_ascii', []):
                 self.ascii_table[ascii_aliases] = unicode_str
-                self.reverse_ascii_table[unicode_str] = info['name']
+                self.reverse_ascii_table[unicode_str] = emoji_info['name']
 
         # Load less-frequent aliases from emojione file
         for alias, n in alias_counter.most_common():
