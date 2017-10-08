@@ -14,7 +14,6 @@ Obviously:
 
 - ibus
 - python
-- the ibus python bindings (on debian/ubuntu: ibus-python)
 
 Less obviously:
 
