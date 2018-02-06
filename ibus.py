@@ -40,8 +40,9 @@ def debug(*a, **kw):
 
 # gee thank you IBus :-)
 num_keys = []
-for n in range(10):
+for n in range(1, 10):
     num_keys.append(getattr(IBus, str(n)))
+num_keys.append(getattr(IBus, '0'))
 del n
 
 ###########################################################################
@@ -102,8 +103,8 @@ class UniEmojiIBusEngine(IBus.Engine):
                 self.preedit_string = self.preedit_string[:-1]
                 self.invalidate()
                 return True
-            elif keyval in num_keys[1:]:
-                index = num_keys.index(keyval) - 1
+            elif keyval in num_keys:
+                index = num_keys.index(keyval)
                 if self.set_lookup_table_cursor_pos_in_current_page(index):
                     self.commit_candidate()
                     return True
