@@ -265,7 +265,9 @@ class UniEmoji():
         for candidate, candidate_info in candidates.items():
             if len(query) > len(candidate): continue
 
-            if query == candidate:
+            candidate_lowercase = candidate.lower()
+
+            if query == candidate_lowercase:
                 # Exact match
                 if candidate_info.unicode_str:
                     matched.append((20, 0, candidate, CANDIDATE_UNICODE))
@@ -278,7 +280,7 @@ class UniEmoji():
                 exact_word_match = 0
                 prefix_match = 0
                 for w, exact_regex, prefix_regex in query_words:
-                    ix = candidate.find(w)
+                    ix = candidate_lowercase.find(w)
                     if ix == -1:
                         word_ixs.append(100)
                     else:
@@ -286,9 +288,9 @@ class UniEmoji():
                         word_ixs.append(ix)
 
                         # Check if an exact word match or a prefix match
-                        if exact_regex.search(candidate):
+                        if exact_regex.search(candidate_lowercase):
                             exact_word_match += 1
-                        elif prefix_regex.search(candidate):
+                        elif prefix_regex.search(candidate_lowercase):
                             prefix_match += 1
 
                 if substring_found and all(ix >= 0 for ix in word_ixs):
@@ -306,10 +308,10 @@ class UniEmoji():
                     # Levenshtein distance
                     score = 0
                     if Levenshtein is None:
-                        opcodes = SequenceMatcher(None, query, candidate,
+                        opcodes = SequenceMatcher(None, query, candidate_lowercase,
                             autojunk=False).get_opcodes()
                     else:
-                        opcodes = Levenshtein.opcodes(query, candidate)
+                        opcodes = Levenshtein.opcodes(query, candidate_lowercase)
                     for (tag, i1, i2, j1, j2) in opcodes:
                         if tag in ('replace', 'delete'):
                             score = 0
