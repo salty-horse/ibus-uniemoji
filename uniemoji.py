@@ -404,7 +404,7 @@ class UniEmoji():
         return results
 
 if __name__ == '__main__':
-    query_string = sys.argv[1]
+    query_string = ' '.join(sys.argv[1:])
     ue = UniEmoji()
     results = ue.find_characters(query_string)
     for _, display_str in results:
