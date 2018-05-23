@@ -20,6 +20,8 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 
+import gi
+gi.require_version('IBus', '1.0')
 from gi.repository import IBus
 from gi.repository import GLib
 from gi.repository import GObject
