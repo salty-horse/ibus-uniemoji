@@ -126,17 +126,18 @@ CANDIDATE_UNICODE = 0
 CANDIDATE_ALIAS = 1
 
 class UniEmojiChar(object):
-    def __init__(self, unicode_str=None, is_emojione=False, is_custom=False):
+    def __init__(self, unicode_str=None, is_emojione=False, is_custom=False, is_kaomoji=False):
         self.unicode_str = unicode_str
         self.aliasing = []
         self.is_emojione = is_emojione
         self.is_custom = is_custom
-
+        self.is_kaomoji = is_kaomoji
     def __repr__(self):
-        return 'UniEmojiChar(unicode_str={}, is_emojione={}, is_custom={}, aliasing={})'.format(
+        return 'UniEmojiChar(unicode_str={}, is_emojione={}, is_custom={}, is_kaomoji={}, aliasing={})'.format(
             self.unicode_str,
             self.is_emojione,
             self.is_custom,
+            self.is_kaomoji,
             self.aliasing)
 
 
@@ -233,6 +234,26 @@ class UniEmoji():
                     debug(custom_table)
                     for k, v in custom_table.items():
                         self.table[k] = UniEmojiChar(v, is_custom=True)
+# Load kaomoji file(s)
+        for d in reversed(SETTINGS_DIRS):
+            kaomoji_filename = os.path.join(d, 'kaomoji.json')
+            debug('Loading kaomoji from {}'.format(kaomoji_filename))
+            if os.path.isfile(kaomoji_filename):
+                kaomoji_table = None
+                try:
+                    with open(kaomoji_filename, encoding='utf-8') as f:
+                        kaomoji_table = json.loads(f.read())
+                except:
+                    error = sys.exc_info()[1]
+                    debug(error)
+                    self.table = {
+                        'Failed to load kaomoji file {}: {}'.format(kaomoji_filename, error): 'ERROR'
+                    }
+                    break
+                else:
+                    debug(kaomoji_table)
+                    for k, v in kaomoji_table.items():
+                        self.table[k] = UniEmojiChar(v, is_kaomoji=True)
 
     def _filter(self, query, limit=100):
         if len(self.table) <= 10:
