@@ -54,6 +54,7 @@ class UniEmojiIBusEngine(IBus.Engine):
 
     def __init__(self):
         super(UniEmojiIBusEngine, self).__init__()
+    def enable_engine(self):
         self.uniemoji = UniEmoji()
         self.is_invalidate = False
         self.preedit_string = ''
@@ -90,6 +91,9 @@ class UniEmojiIBusEngine(IBus.Engine):
         if not is_press:
             return False
 
+        if keyval == IBus.Escape:
+                self.enable_engine()  
+
         if self.preedit_string:
             if keyval == IBus.Return:
                 if self.lookup_table.get_number_of_candidates() > 0:
@@ -122,8 +126,6 @@ class UniEmojiIBusEngine(IBus.Engine):
                 return True
             elif keyval == IBus.Down:
                 self.cursor_down()
-                return True
-            elif keyval == IBus.Left or keyval == IBus.Right:
                 return True
 
         if keyval == IBus.space and len(self.preedit_string) == 0:
@@ -248,7 +250,7 @@ class IMApp:
             debug_on = True
         self.mainloop = GLib.MainLoop()
         self.bus = IBus.Bus()
-        self.bus.connect("disconnected", self.bus_disconnected_cb)
+        #self.bus.connect("disconnected", self.bus_disconnected_cb) absence doesn't seem to affect the engine
         self.factory = IBus.Factory.new(self.bus.get_connection())
         self.factory.add_engine("uniemoji", GObject.type_from_name("UniEmojiIBusEngine"))
         if exec_by_ibus:
