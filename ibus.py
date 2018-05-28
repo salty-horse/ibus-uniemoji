@@ -54,7 +54,6 @@ class UniEmojiIBusEngine(IBus.Engine):
 
     def __init__(self):
         super(UniEmojiIBusEngine, self).__init__()
-    def enable_engine(self):
         self.uniemoji = UniEmoji()
         self.is_invalidate = False
         self.preedit_string = ''
@@ -91,9 +90,6 @@ class UniEmojiIBusEngine(IBus.Engine):
         if not is_press:
             return False
 
-        if keyval == IBus.Escape:
-                self.enable_engine()  
-
         if self.preedit_string:
             if keyval == IBus.Return:
                 if self.lookup_table.get_number_of_candidates() > 0:
@@ -115,10 +111,10 @@ class UniEmojiIBusEngine(IBus.Engine):
                     self.commit_candidate()
                     return True
                 return False
-            elif keyval == IBus.Page_Up or keyval == IBus.KP_Page_Up:
+            elif keyval == IBus.Page_Up or keyval == IBus.KP_Page_Up or keyval == IBus.Left:
                 self.page_up()
                 return True
-            elif keyval == IBus.Page_Down or keyval == IBus.KP_Page_Down:
+            elif keyval == IBus.Page_Down or keyval == IBus.KP_Page_Down or keyval == IBus.Right:
                 self.page_down()
                 return True
             elif keyval == IBus.Up:
