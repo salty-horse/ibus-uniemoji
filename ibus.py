@@ -91,7 +91,7 @@ class UniEmojiIBusEngine(IBus.Engine):
             return False
 
         if self.preedit_string:
-            if keyval == IBus.Return:
+            if keyval == IBus.Return or keyval == IBus.KP_Enter:
                 if self.lookup_table.get_number_of_candidates() > 0:
                     self.commit_candidate()
                 else:
@@ -105,7 +105,7 @@ class UniEmojiIBusEngine(IBus.Engine):
                 self.preedit_string = self.preedit_string[:-1]
                 self.invalidate()
                 return True
-            elif keyval in num_keys:
+            elif keyval in num_keys or keyval in numpad_keys:
                 index = num_keys.index(keyval)
                 if self.set_lookup_table_cursor_pos_in_current_page(index):
                     self.commit_candidate()
