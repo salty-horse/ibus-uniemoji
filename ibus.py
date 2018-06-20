@@ -258,7 +258,7 @@ class IMApp:
             debug_on = True
         self.mainloop = GLib.MainLoop()
         self.bus = IBus.Bus()
-        #self.bus.connect("disconnected", self.bus_disconnected_cb) absence doesn't seem to affect the engine
+        self.bus.connect("disconnected", self.bus_disconnected_cb)
         self.factory = IBus.Factory.new(self.bus.get_connection())
         self.factory.add_engine("uniemoji", GObject.type_from_name("UniEmojiIBusEngine"))
         if exec_by_ibus:
