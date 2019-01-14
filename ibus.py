@@ -49,7 +49,7 @@ del n
 
 numpad_keys = []
 for n in range(1, 10):
-    numpad_keys.append(getattr(IBus, 'KP_'+str(n)))
+    numpad_keys.append(getattr(IBus, 'KP_' + str(n)))
 numpad_keys.append(getattr(IBus, 'KP_0'))
 del n
 
