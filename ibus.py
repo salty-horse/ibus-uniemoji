@@ -97,7 +97,7 @@ class UniEmojiIBusEngine(IBus.Engine):
             return False
 
         if self.preedit_string:
-            if keyval == IBus.Return or keyval == IBus.KP_Enter:
+            if keyval in (IBus.Return, IBus.KP_Enter):
                 if self.lookup_table.get_number_of_candidates() > 0:
                     self.commit_candidate()
                 else:
