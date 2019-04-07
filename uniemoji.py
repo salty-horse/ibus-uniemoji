@@ -204,7 +204,7 @@ class UniEmoji():
                 alias_counter[alias] += 1
                 temp_alias_table[alias].add(unicode_str)
 
-            for ascii_aliases in emoji_info.get('aliases_ascii', []):
+            for ascii_aliases in emoji_info.get('ascii', []):
                 self.ascii_table[ascii_aliases] = unicode_str
                 self.reverse_ascii_table[unicode_str] = emoji_info['name']
 
