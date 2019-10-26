@@ -214,6 +214,22 @@ class UniEmoji():
                 continue
             self.table[alias].aliasing.extend(temp_alias_table[alias])
 
+        # Load emoji ZWJ sequences
+        with open(os.path.join(__base_dir__, 'emoji-zwj-sequences.txt'), encoding='utf-8') as f:
+            for line in f:
+                if line.startswith('#'):
+                    continue
+                line = line.strip()
+                if not line:
+                    continue
+
+                fields = line.split(';')
+                unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in fields[0].strip().split(' '))
+                description = fields[2][:fields[2].find('#')].strip()
+                if unicode_str not in self.unicode_chars_to_names:
+                    self.unicode_chars_to_names[unicode_str] = description
+                    self.table[description] = UniEmojiChar(unicode_str)
+
         # Load custom file(s)
         for d in reversed(SETTINGS_DIRS):
             custom_filename = os.path.join(d, 'custom.json')
@@ -360,7 +376,7 @@ class UniEmoji():
         for level, score, name, candidate_type in self._filter(query_string.lower()):
             uniemoji_char = self.table[name]
 
-            # Since we have several source (UnicodeData.txt, EmojiOne),
+            # Since we have several sources (UnicodeData.txt, EmojiOne),
             # make sure we don't output multiple identical candidates
             if candidate_type == CANDIDATE_UNICODE:
                 if uniemoji_char.unicode_str in candidate_strings:
