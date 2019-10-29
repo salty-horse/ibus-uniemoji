@@ -150,6 +150,28 @@ class UniEmoji():
         self.ascii_table = {}
         self.reverse_ascii_table = {}
         self.alias_table = {}
+        self.has_text_representation = {}
+
+        # Load emoji sequences
+        with open(os.path.join(__base_dir__, 'emoji-sequences.txt'), encoding='utf-8') as f:
+            for line in f:
+                if line.startswith('#'):
+                    continue
+                line = line.strip()
+                if not line:
+                    continue
+
+                fields = line.split(';')
+                if '..' in fields[0]:
+                    continue
+                unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in fields[0].strip().split(' '))
+                description = fields[2][:fields[2].find('#')].strip()
+                if description.startswith('flag: '):
+                    description = 'flag of ' + description[6:]
+                self.unicode_chars_to_names[unicode_str] = description
+                self.table[description] = UniEmojiChar(unicode_str)
+
+        # Load unicode characters
         with open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
             for line in unicodedata.readlines():
                 if not line.strip(): continue
@@ -161,8 +183,16 @@ class UniEmoji():
                     continue
                 name = name.lower()
                 unicode_char = chr(code)
-                self.table[name] = UniEmojiChar(unicode_char)
-                self.unicode_chars_to_names[unicode_char] = name
+                if unicode_char not in self.unicode_chars_to_names:
+                    char_with_fe0f = unicode_char + '\ufe0f'
+                    if char_with_fe0f in self.unicode_chars_to_names:
+                        self.has_text_representation[char_with_fe0f] = unicode_char
+                        if name != self.unicode_chars_to_names[char_with_fe0f]:
+                            if name not in self.table:
+                                self.table[name] = UniEmojiChar(char_with_fe0f)
+                    else:
+                        self.table[name] = UniEmojiChar(unicode_char)
+                        self.unicode_chars_to_names[unicode_char] = name
 
         # Load emojione file
         alias_counter = Counter()
@@ -175,6 +205,9 @@ class UniEmoji():
 
             unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in codepoints.split('-'))
             emoji_shortname = emoji_info['shortname'][1:-1]
+
+            if unicode_str + '\ufe0f' in self.unicode_chars_to_names:
+                unicode_str = unicode_str + '\ufe0f'
             self.unicode_chars_to_shortnames[unicode_str] = emoji_shortname
 
             emoji_shortname = emoji_shortname.replace('_', ' ')
@@ -184,10 +217,8 @@ class UniEmoji():
                 # Clashes turn into aliases.
                 if unicode_str != self.table[emoji_shortname].unicode_str:
                     self.table[emoji_shortname].aliasing.append(unicode_str)
-            elif emoji_info['category'] == 'flags' and ' flag' not in emoji_info['name']:
-                flag_name = 'flag of ' + emoji_info['name']
-                self.table[flag_name] = UniEmojiChar(unicode_str, is_emojione=True)
-                self.unicode_chars_to_names[unicode_str] = flag_name
+            elif emoji_info['category'] == 'flags':
+                pass # No special handling of flags
             else:
                 self.table[emoji_shortname] = UniEmojiChar(unicode_str, is_emojione=True)
 
@@ -362,6 +393,16 @@ class UniEmoji():
         results = []
         candidate_strings = set()
 
+        def append_result(sequence, description):
+            display = '{}: {}'.format(sequence, description)
+            results.append((sequence, display))
+            if sequence.endswith('\ufe0f'):
+                text_repr = self.has_text_representation.get(sequence)
+                if text_repr:
+                    display = '{}: {} (text)'.format(text_repr, description)
+                    results.append((text_repr, display))
+
+
         if not query_string:
             return results
 
@@ -369,8 +410,8 @@ class UniEmoji():
         ascii_match = self.ascii_table.get(query_string)
         if ascii_match:
             unicode_name = self.reverse_ascii_table[ascii_match]
-            display_str = '{}: {} [{}]'.format(ascii_match, unicode_name, query_string)
-            results.append((ascii_match, display_str))
+            display_str = '{} [{}]'.format(unicode_name, query_string)
+            append_result(ascii_match, display_str)
 
         # Look for a fuzzy match against a description
         for level, score, name, candidate_type in self._filter(query_string.lower()):
@@ -387,20 +428,18 @@ class UniEmoji():
                 if uniemoji_char.is_emojione:
                     unicode_name = self.unicode_chars_to_names.get(uniemoji_char.unicode_str)
                     if unicode_name and unicode_name != name:
-                        display_str = '{}: :{}: {}'.format(
-                            uniemoji_char.unicode_str,
+                        display_str = ':{}: {}'.format(
                             name.replace(' ', '_'),
                             unicode_name)
                 if display_str is None:
                     shortname = self.unicode_chars_to_shortnames.get(uniemoji_char.unicode_str, '')
                     if shortname:
                         shortname = ':' + shortname + ': '
-                    display_str = '{}: {}{}'.format(
-                        uniemoji_char.unicode_str,
+                    display_str = '{}{}'.format(
                         shortname,
                         name)
 
-                results.append((uniemoji_char.unicode_str, display_str))
+                append_result(uniemoji_char.unicode_str, display_str)
 
             # Aliases expand into several candidates
             for unicode_str in uniemoji_char.aliasing:
@@ -411,12 +450,11 @@ class UniEmoji():
                 shortname = self.unicode_chars_to_shortnames.get(unicode_str, '')
                 if shortname:
                     shortname = ':' + shortname + ': '
-                display_str = '{}: {}{} [{}]'.format(
-                    unicode_str,
+                display_str = '{}{} [{}]'.format(
                     shortname,
                     unicode_name,
                     name)
-                results.append((unicode_str, display_str))
+                append_result(unicode_str, display_str)
 
         return results
 
