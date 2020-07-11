@@ -60,7 +60,7 @@ The search is fuzzy, so searching for 'tco' will find 'taco'. However, it will n
 
 The list of candidates that appears in the drop-down includes several bits of information:
 
-* If the character has an "emoji shortname" (provided by EmojiOne), the shortname will appear first in the result, surrounded by colons.
+* If the character has an "emoji shortname" (provided by JoyPixels), the shortname will appear first in the result, surrounded by colons.
 A shortname is also a good indication that the candidate has an graphical representation, which will be replaced by an actual image on some clients (such as Twitter.com).
 * If your search query matches an alias, the alias will be shown in square brackets.
 
@@ -84,4 +84,4 @@ License
 UniEmoji is licensed under the GNU General Public License v3.0, except for the following files:
 
 * UnicodeData.txt and emoji-zwj-sequences.txt are provided by the [Unicode Consortium](http://unicode.org/) under a specific license. See COPYING.unicode for details.
-* emojione.json is provided by [EmojiOne](http://emojione.com/) under the MIT license.
+* emojione.json is provided by [JoyPixels](https://www.joypixels.com/) under their "[Free License](https://www.joypixels.com/licenses/free)".

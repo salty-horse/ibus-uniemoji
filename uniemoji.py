@@ -201,7 +201,7 @@ class UniEmoji():
         emojione_data = json.load(open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
         for emoji_info in emojione_data.values():
 
-            codepoints = emoji_info['code_points']['output']
+            codepoints = emoji_info['code_points']['fully_qualified']
 
             unicode_str = ''.join(chr(int(codepoint, 16)) for codepoint in codepoints.split('-'))
             emoji_shortname = emoji_info['shortname'][1:-1]
