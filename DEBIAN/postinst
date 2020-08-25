@@ -1,0 +1,30 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+
+  configure)
+    if [ -x /usr/bin/sudo ] && [ -x /bin/ps ]; then
+
+      ibuspid=`ps -C ibus-daemon -o pid=|head -n 1`
+      if [ "x$ibuspid" != "x" ]; then
+        ibususer=`ps -C ibus-daemon -o user=`
+
+        sudo -H -u "$ibususer" ibus restart
+      fi
+    fi
+  ;;
+
+  abort-upgrade|abort-remove|abort-deconfigure)
+    exit 0
+  ;;
+
+  *)
+    echo "postinst called with unknown argument \`$1'" >&2
+    exit 1
+  ;;
+
+esac
+
+exit 0
