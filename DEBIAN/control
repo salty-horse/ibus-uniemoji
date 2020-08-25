@@ -1,0 +1,8 @@
+Package: ibus-uniemoji
+Version: <currentversion>
+Architecture: amd64
+Maintainer: jrandiny <jrandiny@gmail.com>
+Depends: ibus,python3,gir1.2-ibus-1.0,python3-levenshtein
+Description: Ibus input method for entering emoji by name
+Section: Utilities
+Priority: optional
