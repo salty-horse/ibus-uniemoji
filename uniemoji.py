@@ -111,6 +111,7 @@ VALID_RANGES = (
     (0x1f600, 0x1f64f), # Emoticons
     (0x1f650, 0x1f67f), # Ornamental Dingbats
     (0x1f680, 0x1f6ff), # Transport and Map Symbols
+    (0x1f7e0, 0x1f7eb), # Geometric Shapes Extended (partial)
     (0x1f900, 0x1f9ff), # Supplemental Symbols and Pictographs
 )
 
