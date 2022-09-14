@@ -155,7 +155,7 @@ class UniEmoji():
         self.has_text_representation = {}
 
         # Load emoji sequences
-        with open(os.path.join(__base_dir__, 'emoji-sequences.txt'), encoding='utf-8') as f:
+        with open(os.path.join(__base_dir__, 'unicode', 'emoji-sequences.txt'), encoding='utf-8') as f:
             for line in f:
                 if line.startswith('#'):
                     continue
@@ -174,7 +174,7 @@ class UniEmoji():
                 self.table[description] = UniEmojiChar(unicode_str)
 
         # Load unicode characters
-        with open(os.path.join(__base_dir__, 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
+        with open(os.path.join(__base_dir__, 'unicode', 'UnicodeData.txt'), encoding='utf-8') as unicodedata:
             for line in unicodedata.readlines():
                 if not line.strip(): continue
                 code, name, category, _ = line.split(';', 3)
@@ -200,7 +200,7 @@ class UniEmoji():
         alias_counter = Counter()
         temp_alias_table = defaultdict(set)
 
-        emojione_data = json.load(open(os.path.join(__base_dir__, 'emojione.json'), encoding='utf-8'))
+        emojione_data = json.load(open(os.path.join(__base_dir__, 'joypixels_emoji.json'), encoding='utf-8'))
         for emoji_info in emojione_data.values():
 
             codepoints = emoji_info['code_points']['fully_qualified']
@@ -248,7 +248,7 @@ class UniEmoji():
             self.table[alias].aliasing.extend(temp_alias_table[alias])
 
         # Load emoji ZWJ sequences
-        with open(os.path.join(__base_dir__, 'emoji-zwj-sequences.txt'), encoding='utf-8') as f:
+        with open(os.path.join(__base_dir__, 'unicode', 'emoji-zwj-sequences.txt'), encoding='utf-8') as f:
             for line in f:
                 if line.startswith('#'):
                     continue

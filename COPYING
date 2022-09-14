@@ -1,4 +1,4 @@
-        (this license applies to all files except UnicodeData.txt and emojione.json)
+        (this license applies to all files except those in the unicode/ directory and joypixels_emoji.json)
 
                     GNU GENERAL PUBLIC LICENSE
                        Version 3, 29 June 2007

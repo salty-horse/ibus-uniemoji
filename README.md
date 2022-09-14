@@ -83,5 +83,5 @@ License
 
 UniEmoji is licensed under the GNU General Public License v3.0, except for the following files:
 
-* UnicodeData.txt and emoji-zwj-sequences.txt are provided by the [Unicode Consortium](http://unicode.org/) under a specific license. See COPYING.unicode for details.
-* emojione.json is provided by [JoyPixels](https://www.joypixels.com/) under their "[Free License](https://www.joypixels.com/licenses/free)".
+* Files under `unicode/` are provided by the [Unicode Consortium](https://unicode.org/) under a specific license. See COPYING.unicode for details.
+* `joypixels_emoji.json` is part of [JoyPixels's Emoji Toolkit](https://github.com/joypixels/emoji-toolkit/) and provided under the "[MIT License](https://github.com/joypixels/emoji-toolkit/blob/6.6.0/LICENSE.md)".
