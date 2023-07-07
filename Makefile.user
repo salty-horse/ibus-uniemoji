@@ -1,0 +1,58 @@
+# Needs to be run under active user session
+# xdg and systemd required
+
+SYSCONFDIR ?= /etc
+CONFDIR ?= $(XDG_CONFIG_HOME)
+DATADIR ?= $(XDG_DATA_HOME)
+DESTDIR ?=
+
+PYTHON ?= /usr/bin/python3
+
+all: uniemoji.xml config.py environment.conf
+
+uniemoji.xml: uniemoji.xml.in
+	sed -e "s:@PYTHON@:$(PYTHON):g;" \
+	    -e "s:@DATADIR@:$(DATADIR):g" $< > $@
+
+config.py: config.py.in
+	sed -e "s:@SYSCONFDIR@:$(SYSCONFDIR):g" $< > $@
+
+environment.conf: environment.conf.in
+	sed -e "s:@DATADIR@:$(DATADIR):g" $< > $@
+
+install: all
+	install -m 0755 -d \
+		$(DESTDIR)$(CONFDIR)/environment.d         \
+		$(DESTDIR)$(CONFDIR)/xdg/uniemoji          \
+		$(DESTDIR)$(DATADIR)/ibus-uniemoji         \
+		$(DESTDIR)$(DATADIR)/ibus-uniemoji/unicode \
+		$(DESTDIR)$(DATADIR)/ibus/component
+	install -m 0644 uniemoji.svg joypixels_emoji.json $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	install -m 0644 unicode/*.txt $(DESTDIR)$(DATADIR)/ibus-uniemoji/unicode
+	install -m 0755 uniemoji.py $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	install -m 0644 config.py $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	install -m 0644 ibus.py $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	install -m 0644 uniemoji.xml $(DESTDIR)$(DATADIR)/ibus/component
+	install -m 0644 custom.json $(DESTDIR)$(CONFDIR)/xdg/uniemoji
+	install -m 0644 environment.conf $(DESTDIR)$(CONFDIR)/environment.d/ibus-uniemoji.conf
+	systemctl --user daemon-reload
+
+uninstall:
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/uniemoji.svg
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/unicode/*.txt
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/*.txt
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/*.json
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/uniemoji.py
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/config.py
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/ibus.py
+	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji/unicode
+	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji
+	rm -f $(DESTDIR)$(DATADIR)/xdg/uniemoji/custom.json
+	rmdir $(DESTDIR)$(DATADIR)/xdg/uniemoji
+	rm -f $(DESTDIR)$(DATADIR)/ibus/component/uniemoji.xml
+	rm -f $(DESTDIR)$(CONFDIR)/environment.d/ibus-uniemoji.conf
+
+clean:
+	rm -f uniemoji.xml
+	rm -f config.py
+	rm -f environment.conf
