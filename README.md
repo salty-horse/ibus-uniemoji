@@ -26,7 +26,16 @@ Optional:
 Installing
 -----------
 
+There are two installation variats: system and user. System variant requires administrator permissions (sudo or su) while user variant requires no special privileges but must be repeated for each user.
+
+System-wide
+
 To install, type `make install`. If your ibus isn't on /usr/share/ibus, or you want to install to /usr/local, you can pass any of `PREFIX`, `DATADIR`, and `SYSCONFDIR` to `make`. You can also pass `DESTDIR` to aid in packaging, or `PYTHON` to use a different Python executable.
+
+
+User install
+
+Similar to system-wide, type `make -f Makefile.user install` from the ibus-uniemoji directory. `PREFIX`, `CONFDIR`, `DATADIR` and `PYTHON` variables are available but `CONFDIR` is mapped by default to `$XDG_CONFIG_HOME` (`~/.config`) and `DATADIR` is to `$XDG_DATA_HOME` (`~/.local/share`)
 
 Running
 --------
