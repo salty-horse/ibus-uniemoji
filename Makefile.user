@@ -47,7 +47,7 @@ install: all
 	install -m 0644 uniemoji.xml $(DESTDIR)$(DATADIR)/ibus/component
 	install -m 0644 custom.json $(DESTDIR)$(CONFDIR)/xdg/uniemoji
 	install -m 0644 environment.conf $(DESTDIR)$(CONFDIR)/environment.d/ibus-uniemoji.conf
-	systemctl --user daemon-reload
+	IBUS_COMPONENT_PATH=/usr/share/ibus/component:$(DATADIR)/ibus/component ibus-daemon --daemonize --replace --panel disable
 
 uninstall:
 	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/uniemoji.svg
@@ -63,6 +63,7 @@ uninstall:
 	rmdir $(DESTDIR)$(DATADIR)/xdg/uniemoji
 	rm -f $(DESTDIR)$(DATADIR)/ibus/component/uniemoji.xml
 	rm -f $(DESTDIR)$(CONFDIR)/environment.d/ibus-uniemoji.conf
+	ibus-daemon --daemonize --replace --panel disable
 
 clean:
 	rm -f uniemoji.xml
