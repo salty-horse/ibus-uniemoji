@@ -57,10 +57,12 @@ uninstall:
 	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/uniemoji.py
 	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/config.py
 	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/ibus.py
-	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji/unicode
-	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji
-	rm -f $(DESTDIR)$(DATADIR)/xdg/uniemoji/custom.json
-	rmdir $(DESTDIR)$(DATADIR)/xdg/uniemoji
+	rm -f $(DESTDIR)$(DATADIR)/ibus-uniemoji/__pycache__/*.pyc
+	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji/__pycache__ || true
+	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji/unicode || true
+	rmdir $(DESTDIR)$(DATADIR)/ibus-uniemoji || true
+	rm -f $(DESTDIR)$(CONFDIR)/xdg/uniemoji/custom.json
+	rmdir $(DESTDIR)$(CONFDIR)/xdg/uniemoji || true
 	rm -f $(DESTDIR)$(DATADIR)/ibus/component/uniemoji.xml
 	rm -f $(DESTDIR)$(CONFDIR)/environment.d/ibus-uniemoji.conf
 	ibus-daemon --daemonize --replace --panel disable
