@@ -2,9 +2,21 @@
 # xdg and systemd required
 
 SYSCONFDIR ?= /etc
+
+ifdef XDG_CONFIG_HOME
 CONFDIR ?= $(XDG_CONFIG_HOME)
+else
+CONFDIR ?= $(HOME)/.config
+endif
+
+ifdef XDG_DATA_HOME
 DATADIR ?= $(XDG_DATA_HOME)
+else
+DATADIR ?= $(HOME)/.local/share
+endif
+
 DESTDIR ?=
+
 
 PYTHON ?= /usr/bin/python3
 
