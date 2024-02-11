@@ -1,0 +1,1 @@
+IBUS_COMPONENT_PATH=/usr/share/ibus/component:@DATADIR@/ibus/component
