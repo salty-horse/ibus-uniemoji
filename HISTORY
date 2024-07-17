@@ -1,9 +1,9 @@
-# 0.7.0 🫠 — 2016-10-15
+# 0.7.0 🫠 — 2024-07-17
 
 - Updated to Unicode 15.1 and emoji-toolkit 9
 - Added support for text representations
 - Added more data sources and ranges - ZWJ sequences are now listed
-- Added mouse wheel support, ande better handling of arrow keys
+- Added mouse wheel support, and better handling of arrow keys
 
 # 0.6.0 🐍🐍🐍📁 — 2016-10-15
 
