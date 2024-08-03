@@ -1,5 +1,6 @@
 uniemoji.db
 uniemoji.xml
 config.py
+environment.conf
 *~
 *.pyc
