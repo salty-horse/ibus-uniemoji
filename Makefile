@@ -8,6 +8,8 @@ DESTDIR ?=
 
 PYTHON ?= /usr/bin/python3
 
+CURRENTDATE = $(shell date '+%Y%m%d')
+
 all: uniemoji.xml config.py
 
 uniemoji.xml: uniemoji.xml.in
@@ -41,6 +43,13 @@ uninstall:
 	rmdir $(DESTDIR)$(SYSCONFDIR)/xdg/uniemoji
 	rm -f $(DESTDIR)$(DATADIR)/ibus/component/uniemoji.xml
 
+deb:
+	make install DESTDIR=./deb-output/
+	cp -r DEBIAN deb-output
+	sed -i "s/<currentversion>/$(CURRENTDATE)/" deb-output/DEBIAN/control
+	dpkg-deb -b deb-output ibus-uniemoji-$(CURRENTDATE).deb
+
 clean:
 	rm -f uniemoji.xml
 	rm -f config.py
+	rm -rf deb-output
