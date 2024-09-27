@@ -26,7 +26,14 @@ Optional:
 Installing
 -----------
 
-To install, type `make install`. If your ibus isn't on /usr/share/ibus, or you want to install to /usr/local, you can pass any of `PREFIX`, `DATADIR`, and `SYSCONFDIR` to `make`. You can also pass `DESTDIR` to aid in packaging, or `PYTHON` to use a different Python executable.
+To install the pre-built package, type:
+
+```bash
+sudo add-apt-repository ppa:helkaluin/ibus-uniemoji
+sudo apt install ibus-uniemoji
+```
+
+To install from source, type `make install`. If your ibus isn't on /usr/share/ibus, or you want to install to /usr/local, you can pass any of `PREFIX`, `DATADIR`, and `SYSCONFDIR` to `make`. You can also pass `DESTDIR` to aid in packaging, or `PYTHON` to use a different Python executable.
 
 Running
 --------
@@ -34,6 +41,8 @@ Running
 Restart (or start) your ibus. This can be done with the command `ibus restart`.
 
 If you have customized your active input methods, you'll need to enable UniEmoji: open preferences (use the indicator if you have it, otherwise open “Keyboard Input Methods” on Ubuntu's dash, or run “ibus-setup”), go to the “Input Method” tab, click the “Select an input method” drop-down, UniEmoji will be in the “Other” category.
+
+If you still don't see the indicator, go to Settings → Keyboard. Add "Other (uniemoji)" as an input source.
 
 Then activate ibus using whatever key combination you have configured, and change input method until you have UniEmoji on (or use the drop-down you get by clicking the input method name on the input method toolbar).
 
