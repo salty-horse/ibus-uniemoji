@@ -28,6 +28,8 @@ Installing
 
 To install, type `make install`. If your ibus isn't on /usr/share/ibus, or you want to install to /usr/local, you can pass any of `PREFIX`, `DATADIR`, and `SYSCONFDIR` to `make`. You can also pass `DESTDIR` to aid in packaging, or `PYTHON` to use a different Python executable.
 
+For Debian and Ubuntu you can create a `.deb` file by running `make deb` and install with `sudo apt install ./<created_deb_filename>.deb`
+
 Running
 --------
 
